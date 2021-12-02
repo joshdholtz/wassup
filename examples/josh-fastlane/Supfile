@@ -3,6 +3,8 @@ require 'rest-client'
 require 'json'
 require 'colorize'
 
+require 'curses'
+
 fastlane_community_prs = []
 fastlane_prs = []
 
@@ -135,6 +137,14 @@ add_pane do |pane|
       workflow = json["items"].first
       status = workflow["status"]
 
+      if status == "failed"
+        status = "[fg=red]#{status}[fg=white]"
+      elsif status == "success"
+        status = "[fg=green]#{status}[fg=white]"
+      else
+        status = "[fg=yellow]#{status}[fg=white]"
+      end
+
       ["#{number} (#{status}) by #{login} - #{message}", workflow]
     end
   end
@@ -196,7 +206,7 @@ add_pane do |pane|
         days = (Time.now - date).to_i / (24 * 60 * 60)
         days_formatted = '%3.3s' % days.to_s
 
-        ["#{number_formatted} #{days_formatted}d ago #{title}",pr]
+        ["[fg=yellow]#{number_formatted}[fg=cyan] #{days_formatted}d ago[fg=white] #{title}",pr]
       end
 
       {
@@ -247,7 +257,7 @@ add_pane do |pane|
       days = (Time.now - date).to_i / (24 * 60 * 60)
       days_formatted = '%3.3s' % days.to_s
 
-      ["##{number} #{days_formatted}d ago #{title}",pr]
+      ["[fg=yellow]##{number}[fg=cyan] #{days_formatted}d ago[fg=white] #{title}",pr]
     end
   end
   pane.selection do |data|

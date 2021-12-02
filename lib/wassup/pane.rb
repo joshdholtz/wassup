@@ -164,6 +164,8 @@ module Wassup
     end
       
     def update_title
+      return unless self.should_box
+
       title = self.title || "<No Title>"
       full_title = "#{self.focus_number} - #{title}"
 
@@ -182,9 +184,9 @@ module Wassup
     def update_box
       return unless self.should_box
 
-      self.win.attron(self.focused ? Curses.color_pair(2) : Curses.color_pair(1))
+      self.win.attrset(self.focused ? Curses.color_pair(Wassup::Color::Pair::BORDER_FOCUS) : Curses.color_pair(Wassup::Color::Pair::BORDER))
       self.win.box()
-      self.win.attron(Curses.color_pair(1))
+      self.win.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
 
       self.win.refresh
     end
@@ -215,19 +217,70 @@ module Wassup
 
       self.data_lines[self.top..(self.top+self.subwin.maxy-1)].each_with_index do |line, idx|
 
-        if self.focused && self.highlight && (idx + self.top) == self.highlighted_line
-          self.subwin.attron(Curses.color_pair(4))
-        else
-          self.subwin.attron(Curses.color_pair(1))
-        end
+        write_full_line = false
+        should_highlight = self.focused && self.highlight && (idx + self.top) == self.highlighted_line
 
-        short_line = line[0...self.subwin.maxx()-3]
+        max_char = self.subwin.maxx()-3 
+       
+#        if false && write_full_line || should_highlight
+#          if should_highlight
+#            self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::HIGHLIGHT))
+#          else
+#            self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
+#          end
+#
+#          short_line = line[0...max_char]
+#
+#          self.subwin.setpos(idx, 0)
+#          self.subwin.addstr(short_line)
+#          self.subwin.clrtoeol()
+#
+#          self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
+#        else
+          self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
 
-        self.subwin.setpos(idx, 0)
-        self.subwin.addstr(short_line)
-        self.subwin.clrtoeol()
+          splits = line.split(/\[.*?\]/) # returns ["hey something", "other thing", "okay"]
+          scans = line.scan(/\[.*?\]/) #returns ["red", "white"]
+          scans = scans.map do |str|
+            if str.start_with?('[fg=')
+              str = str.gsub('[fg=', '').gsub(']','')
+              Wassup::Color.new(str)
+            else
+              str
+            end
+          end
 
-        self.subwin.attron(Curses.color_pair(1))
+          all_parts = splits.zip(scans).flatten.compact
+      
+          char_count = 0
+
+          if should_highlight
+            self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::HIGHLIGHT))
+          end
+
+          all_parts.each do |part|
+            if part.is_a?(Wassup::Color)
+              #color = Curses.color_pair([1,2,3,4].sample)
+              if !should_highlight
+                self.subwin.attrset(Curses.color_pair(part.color_pair))
+              end
+            else
+              new_char_count = char_count + part.size
+              if new_char_count >= max_char
+                part = part[0...(max_char - char_count)]  
+              end
+
+              self.subwin.setpos(idx, char_count)
+              self.subwin.addstr(part)
+
+              char_count += part.size
+            end
+
+          end
+
+          self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
+          self.subwin.clrtoeol()
+        #end
       end
       self.subwin.refresh
     end
@@ -327,10 +380,10 @@ module Wassup
         self.top += 1
         str = self.data_lines[self.top + self.subwin.maxy - 1]
         if str
-          self.subwin.attron(Curses.color_pair(1))
+          self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
           self.subwin.setpos(self.subwin.maxy - 1, 0)
           self.subwin.addstr(str)
-          self.subwin.attron(Curses.color_pair(1))
+          self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
         end
         return true
       else

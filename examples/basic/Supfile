@@ -1,0 +1,28 @@
+require 'json'
+require 'rest-client'
+
+add_pane do |pane|
+  pane.height = 0.5
+  pane.width = 0.5
+  pane.top = 0
+  pane.left = 0
+
+  pane.highlight = true
+  pane.title = "Open PRs - fastlane/fastlane"
+
+  pane.interval = 60 * 5
+  pane.content do
+    resp = RestClient.get "https://api.github.com/repos/fastlane/fastlane/pulls"
+    json = JSON.parse(resp)
+    json.map do |pr|
+      display = "##{pr["number"]} #{pr["title"]}"
+      
+      # First element is displayed
+      # Second element is passed to pane.selection
+      [display, pr["html_url"]]   
+    end
+  end
+  pane.selection do |url|
+    `open #{url}`
+  end
+end

@@ -10,10 +10,12 @@ module Wassup
 
       Curses.stdscr.scrollok true
 
-      Curses.init_pair(1, 15, 0) #white foreground, black background
-      Curses.init_pair(2, 2, 0) # red foreground, black background
-      Curses.init_pair(3, 7, 3) # white foreground, yellow background
-      Curses.init_pair(4, 0, 15) # white foreground, yellow background
+      Wassup::Color.init
+
+      # Determines the colors in the 'attron' below
+
+      #Curses.init_pair(Curses::COLOR_BLUE,Curses::COLOR_BLUE,Curses::COLOR_BLACK) 
+      #Curses.init_pair(Curses::COLOR_RED,Curses::COLOR_RED,Curses::COLOR_BLACK)
 
       app = App.new(path: path)
     end
