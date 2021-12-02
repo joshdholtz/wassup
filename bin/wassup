@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 
 require 'wassup'
-Wassup::App.start(path: "examples/basic.rb")
+Wassup::App.start(path: ARGV[0])

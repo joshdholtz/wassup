@@ -1,0 +1,257 @@
+require 'time'
+require 'rest-client'
+require 'json'
+require 'colorize'
+
+fastlane_community_prs = []
+fastlane_prs = []
+
+#
+# Top Left 1
+#
+add_pane do |pane|
+  pane.height = 0.25
+  pane.width = 0.35
+  pane.top = 0
+  pane.left = 0
+
+  pane.highlight = false
+
+  pane.title = "Stats: fastlane-community"
+
+  pane.interval = 1
+  pane.content do
+    days_1 = 0
+    days_7 = 0
+    days_30 = 0
+    days_60 = 0
+    days_365 = 0
+
+    fastlane_community_prs.each do |pr|
+      created_at = pr["created_at"] 
+      date = Time.parse(created_at)
+      days = (Time.now - date).to_i / (24 * 60 * 60)
+
+      days_1 +=1 if days <= 1
+      days_7 +=1 if days <= 7
+      days_30 +=1 if days <= 30
+      days_60 +=1 if days <= 60
+      days_365 +=1 if days <= 365
+    end
+
+    [
+      "Opened today: #{days_1}",
+      "Opened 7 days: #{days_7}",
+      "Opened 30 days: #{days_30}",
+      "Opened 60 days: #{days_60}",
+      "Opened 365 days: #{days_365}"
+    ] 
+  end
+end
+
+#
+# Top Left 2
+#
+add_pane do |pane|
+  pane.height = 0.25
+  pane.width = 0.35
+  pane.top = 0.25
+  pane.left = 0
+
+  pane.highlight = false
+
+  pane.title = "Stats: fastlane/fastlane"
+
+  pane.interval = 1
+  pane.content do
+    days_1 = 0
+    days_7 = 0
+    days_30 = 0
+    days_45 = 0
+    days_60 = 0
+    days_60_plus = 0
+
+    fastlane_prs.each do |pr|
+      created_at = pr["created_at"] 
+      date = Time.parse(created_at)
+      days = (Time.now - date).to_i / (24 * 60 * 60)
+
+      days_1 +=1 if days <= 1
+      days_7 +=1 if days <= 7
+      days_30 +=1 if days <= 30
+      days_45 +=1 if days <= 45
+      days_60 +=1 if days <= 60
+      days_60_plus +=1 if days > 60
+    end
+
+    [
+      "Opened today: #{days_1}",
+      "Opened 7 days: #{days_7}",
+      "Opened 30 days: #{days_30}",
+      "Opened 45 days: #{days_45}",
+      "Opened 60 days: #{days_60}",
+      "More than 60 days: #{days_60_plus}",
+    ] 
+  end
+end
+
+#
+# Top Right
+#
+add_pane do |pane|
+  pane.height = 0.5
+  pane.width = 0.65
+  pane.top = 0
+  pane.left = 0.35
+
+  pane.highlight = true
+
+  pane.title = "Circle CI - fastlane/fastlane"
+
+  pane.interval = 60 * 5
+  pane.content do 
+    resp = RestClient::Request.execute(
+      method: :get, 
+      url: "https://circleci.com/api/v2/project/github/fastlane/fastlane/pipeline", 
+      headers: { "Circle-Token": ENV["WASSUP_CIRCLE_CI_API_TOKEN"] }
+    )
+    json = JSON.parse(resp)
+    json["items"].select do |item|
+      date = Time.parse(item["updated_at"])
+      days = (Time.now - date).to_i / (24 * 60 * 60)
+      days < 14
+    end.map do |item|
+      id = item["id"]
+      number = item["number"]
+      message = item["vcs"]["commit"]["subject"]
+      login = item["trigger"]["actor"]["login"]
+
+      resp = RestClient::Request.execute(
+        method: :get, 
+        url: "https://circleci.com/api/v2/pipeline/#{id}/workflow", 
+        headers: { "Circle-Token": ENV["WASSUP_CIRCLE_CI_API_TOKEN"] }
+      )
+      json = JSON.parse(resp)
+      workflow = json["items"].first
+      status = workflow["status"]
+
+      ["#{number} (#{status}) by #{login} - #{message}", workflow]
+    end
+  end
+  pane.selection do |data|
+    slug = data["project_slug"]
+    pipeline_number = data["pipeline_number"]
+    workflow_id = data["id"]
+
+    url = "https://app.circleci.com/pipelines/#{slug}/#{pipeline_number}/workflows/#{workflow_id}"
+    `open #{url}`
+  end
+end
+
+#
+# Bottom Right
+#
+add_pane do |pane|
+  pane.height = 0.5
+  pane.width = 0.5
+  pane.top = 0.5
+  pane.left = 0
+
+  pane.highlight = true
+
+  pane.title = "Open PRs - fastlane-community"
+
+  pane.interval = 60 * 5
+  pane.content do
+    fastlane_community_prs = []
+
+    resp = RestClient::Request.execute(
+      method: :get, 
+      url: "https://api.github.com/orgs/fastlane-community/repos", 
+      user: ENV["WASSUP_GITHUB_USERNAME"],
+      password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"]
+    )
+    json = JSON.parse(resp)
+    json.map do |repo|
+      name = repo["name"]
+      full_name = repo["full_name"]
+
+      resp = RestClient::Request.execute(
+        method: :get, 
+        url: "https://api.github.com/repos/#{full_name}/pulls",
+        user: ENV["WASSUP_GITHUB_USERNAME"],
+        password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"]
+      )
+      json = JSON.parse(resp)
+      prs = json.map do |pr|
+        fastlane_community_prs << pr
+
+        number = pr["number"]
+        title = pr["title"]
+        created_at = pr["created_at"]
+
+        number_formatted = '%5.5s' % "##{number}"
+
+        date = Time.parse(created_at)
+        days = (Time.now - date).to_i / (24 * 60 * 60)
+        days_formatted = '%3.3s' % days.to_s
+
+        ["#{number_formatted} #{days_formatted}d ago #{title}",pr]
+      end
+
+      {
+        title: name,
+        content: prs
+      }
+    end
+  end
+  pane.selection do |data|
+    url = data["html_url"] 
+    `open #{url}`
+  end
+end
+
+
+#
+# Bottom Right
+#
+add_pane do |pane|
+  pane.height = 0.5
+  pane.width = 0.5
+  pane.top = 0.5
+  pane.left = 0.5
+
+  pane.highlight = true
+
+  pane.title = "Open PRs - fastlane/fastlane"
+
+  pane.interval = 60 * 5
+  pane.content do
+    fastlane_prs = []
+
+    resp = RestClient::Request.execute(
+      method: :get, 
+      url: "https://api.github.com/repos/fastlane/fastlane/pulls?per_page=100", 
+      user: ENV["WASSUP_GITHUB_USERNAME"],
+      password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"]
+    )
+    json = JSON.parse(resp)
+    json.map do |pr|
+      fastlane_prs << pr
+
+      number = pr["number"]
+      title = pr["title"]
+      created_at = pr["created_at"]
+
+      date = Time.parse(created_at)
+      days = (Time.now - date).to_i / (24 * 60 * 60)
+      days_formatted = '%3.3s' % days.to_s
+
+      ["##{number} #{days_formatted}d ago #{title}",pr]
+    end
+  end
+  pane.selection do |data|
+    url = data["html_url"] 
+    `open #{url}`
+  end
+end

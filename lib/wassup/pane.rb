@@ -79,15 +79,15 @@ module Wassup
         top_bump = 4
 
         view_title = (self.all_view_data_objects[self.selected_view_index] || {})[:title]
+        view_title += " " * 100
 
         self.win.setpos(2, 2)
-        self.win.addstr(view_title)
-        self.win.clrtoeol()
+        self.win.addstr(view_title[0...self.win.maxx()-3])
 
         subtitle = "(#{self.selected_view_index + 1} out of #{self.all_view_data_objects.size})"
+        subtitle += " " * 100
         self.win.setpos(3, 2)
-        self.win.addstr(subtitle)
-        self.win.clrtoeol()
+        self.win.addstr(subtitle[0...self.win.maxx()-3])
 
         self.win.refresh
       end
@@ -221,7 +221,7 @@ module Wassup
           self.subwin.attron(Curses.color_pair(1))
         end
 
-        short_line = line[0...self.subwin.maxx()-2]
+        short_line = line[0...self.subwin.maxx()-3]
 
         self.subwin.setpos(idx, 0)
         self.subwin.addstr(short_line)
