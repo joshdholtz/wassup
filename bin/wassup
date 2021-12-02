@@ -1,4 +1,11 @@
 #!/usr/bin/env ruby
 
 require 'wassup'
-Wassup::App.start(path: ARGV[0])
+
+path = ARGV[0] || 'Supfile'
+
+unless File.exists?(path)
+  raise "Missing file: #{path}"
+end
+
+Wassup::App.start(path: path)
