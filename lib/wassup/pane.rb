@@ -29,24 +29,19 @@ module Wassup
     attr_accessor :content_block
     attr_accessor :selection_block
 
+    attr_accessor :selected_view_index
+    attr_accessor :all_view_data_objects
+
+    attr_accessor :win_height, :win_width, :win_top, :win_left
+
     def initialize(height, width, top, left, title: nil, highlight: true, focus_number: nil, interval:, content_block:, selection_block:)
-      win_height = Curses.lines * height	
-      win_width = Curses.cols * width
-      win_top = top == 0 ? 0 : Curses.lines * top
-      win_left = left == 0 ? 0 : Curses.cols * left
+      self.win_height = Curses.lines * height	
+      self.win_width = Curses.cols * width
+      self.win_top = Curses.lines * top
+      self.win_left = Curses.cols * left
 
-      self.win = Curses::Window.new(win_height, win_width, win_top, win_left)
-
-      if height == 0
-        self.should_box = false
-        self.subwin = self.win.subwin(0, 0, 0, 0)
-      else
-        self.should_box = true
-        self.subwin = self.win.subwin(win_height - 2, win_width - 4, win_top + 1, win_left + 2)
-      end
-      self.subwin.nodelay=true
-      self.subwin.idlok(true)
-      self.subwin.scrollok(true)
+      self.win = Curses::Window.new(self.win_height, self.win_width, self.win_top, self.win_left)
+      self.setup_subwin()
 
       self.focused = false
       self.focus_number = focus_number
@@ -57,6 +52,9 @@ module Wassup
       self.top = 0
       self.data_lines = []
       self.data_objects = []
+     
+      self.selected_view_index = 0
+      self.all_view_data_objects = [] # Array of array
 
       self.win.refresh
       self.subwin.refresh
@@ -66,6 +64,44 @@ module Wassup
       self.interval = interval
       self.content_block = content_block
       self.selection_block = selection_block
+    end
+
+    def setup_subwin
+      top_bump = 0
+
+      unless self.subwin.nil?
+        self.subwin.clear()
+        self.subwin.close()
+        self.subwin = nil
+      end
+
+      if (@all_view_data_objects || []).size > 1
+        top_bump = 4
+
+        view_title = (self.all_view_data_objects[self.selected_view_index] || {})[:title]
+
+        self.win.setpos(2, 2)
+        self.win.addstr(view_title)
+        self.win.clrtoeol()
+
+        subtitle = "(#{self.selected_view_index + 1} out of #{self.all_view_data_objects.size})"
+        self.win.setpos(3, 2)
+        self.win.addstr(subtitle)
+        self.win.clrtoeol()
+
+        self.win.refresh
+      end
+
+      if self.win_height == 0
+        self.should_box = false
+        self.subwin = self.win.subwin(0, 0, 0, 0)
+      else
+        self.should_box = true
+        self.subwin = self.win.subwin(self.win_height - 2 - top_bump, self.win_width - 4, self.win_top + 1 + top_bump, self.win_left + 2)
+      end
+      self.subwin.nodelay=true
+      self.subwin.idlok(true)
+      self.subwin.scrollok(true)
     end
 
     def needs_refresh?
@@ -79,9 +115,38 @@ module Wassup
       return unless needs_refresh?
 
       content = self.content_block.call()
+
+      return unless content.is_a?(Array)
+      return if content.first.nil?
+
+      if content.first.is_a?(Hash)
+        self.all_view_data_objects = content
+      else
+        self.all_view_data_objects = [
+          content
+        ]
+      end
+
+      self.load_current_view()
+
+      self.last_refreshed = Time.now
+    end
+
+    def load_current_view
+      self.setup_subwin()
+      view_content = self.all_view_data_objects[self.selected_view_index]
+
+      # this might be bad
+      self.highlighted_line = nil
+
+      require 'pp'
+      if view_content.is_a?(Hash) && view_content[:content]
+        view_content = view_content[:content]
+      end
+
       @data_lines = []
       @data_objects = []
-      content.each do |item|
+      view_content.each do |item|
         if item.is_a?(String)
           @data_objects << item
           self.add_line(item)
@@ -89,10 +154,7 @@ module Wassup
           @data_objects << item[1]
           self.add_line(item[0])
         end
-
       end
-
-      self.last_refreshed = Time.now
     end
 
     def title=(title)
@@ -114,6 +176,7 @@ module Wassup
       @focused = focused
       self.update_box()
       self.update_title()
+      self.virtual_reload()
     end
 
     def update_box
@@ -148,15 +211,17 @@ module Wassup
     end
 
     def virtual_reload
+      return if self.data_lines.nil?
+
       self.data_lines[self.top..(self.top+self.subwin.maxy-1)].each_with_index do |line, idx|
 
-        if self.highlight && (idx + self.top) == self.highlighted_line
+        if self.focused && self.highlight && (idx + self.top) == self.highlighted_line
           self.subwin.attron(Curses.color_pair(4))
         else
           self.subwin.attron(Curses.color_pair(1))
         end
 
-        short_line = line[0...self.subwin.maxx()-5]
+        short_line = line[0...self.subwin.maxx()-2]
 
         self.subwin.setpos(idx, 0)
         self.subwin.addstr(short_line)
@@ -221,6 +286,24 @@ module Wassup
       return new
     end
 
+    def scroll_left
+      self.selected_view_index -= 1
+      if self.selected_view_index < 0
+        self.selected_view_index = self.all_view_data_objects.size - 1
+      end
+
+      self.load_current_view
+    end
+
+    def scroll_right
+      self.selected_view_index += 1
+      if self.selected_view_index >= self.all_view_data_objects.size
+        self.selected_view_index = 0
+      end
+
+      self.load_current_view
+    end
+
     # Scroll the display up by one line.
     def scroll_up
       if self.top > 0
@@ -276,9 +359,12 @@ module Wassup
           scroll_up
         end
       elsif input == "h"
-        require 'time'
-        #add_line("#{Time.now}")
-        add_line("line count: #{data_lines.size}")
+        scroll_left
+      elsif input == "l"
+        scroll_right
+      elsif input == "q"
+        # TODO: This needs to quit
+        # Need to kill the loop or something
       elsif input == 10 # enter
         if !self.selection_block.nil? && !self.highlighted_line.nil?
           data = @data_objects[self.highlighted_line]
