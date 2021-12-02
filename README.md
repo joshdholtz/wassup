@@ -1,8 +1,42 @@
 # Wassup
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/wassup`. To experiment with that code, run `bin/console` for an interactive prompt.
+A scriptable terminal dashboard
 
-TODO: Delete this and the text above, and describe your gem
+
+https://user-images.githubusercontent.com/401294/144465499-a8903d4c-f003-4550-b47c-f70c17cc02d8.mov
+
+## Example `Supfile`
+
+```rb
+require 'json'
+require 'rest-client'
+
+add_pane do |pane|                                                                                                   
+  pane.height = 0.5                                                                                                  
+  pane.width = 00.5                                                                                                   
+  pane.top = 0                                                                                                   
+  pane.left = 0
+
+  pane.highlight = true
+  pane.title = "Open PRs - fastlane/fastlane"
+
+  pane.interval = 60 * 5
+  pane.content do
+    resp = RestClient.get "https://api.github.com/repos/fastlane/fastlane/pulls"
+    json = JSON.parse(resp)
+    json.map do |pr|
+      display = "##{pr["number"]} pr["title"]"
+      
+      # First element is displayed
+      # Second element is passed to pane.selection
+      [display, pr["html_url"]]   
+    end
+  end
+  pane.selection do |url|
+    `open #{url}`
+  end
+end
+```
 
 ## Installation
 
