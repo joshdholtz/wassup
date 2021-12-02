@@ -7,6 +7,7 @@ module Wassup
     attr_accessor :win
     attr_accessor :subwin
     attr_accessor :data_lines
+    attr_accessor :data_objects
     attr_accessor :top
 
     attr_accessor :title
@@ -26,8 +27,9 @@ module Wassup
     attr_accessor :interval
     attr_accessor :last_refreshed
     attr_accessor :content_block
+    attr_accessor :selection_block
 
-    def initialize(height, width, top, left, title: nil, highlight: true, focus_number: nil, interval:, content_block:)
+    def initialize(height, width, top, left, title: nil, highlight: true, focus_number: nil, interval:, content_block:, selection_block:)
       win_height = Curses.lines * height	
       win_width = Curses.cols * width
       win_top = top == 0 ? 0 : Curses.lines * top
@@ -54,6 +56,7 @@ module Wassup
 
       self.top = 0
       self.data_lines = []
+      self.data_objects = []
 
       self.win.refresh
       self.subwin.refresh
@@ -62,6 +65,7 @@ module Wassup
 
       self.interval = interval
       self.content_block = content_block
+      self.selection_block = selection_block
     end
 
     def needs_refresh?
@@ -76,8 +80,16 @@ module Wassup
 
       content = self.content_block.call()
       @data_lines = []
+      @data_objects = []
       content.each do |item|
-        self.add_line(item)
+        if item.is_a?(String)
+          @data_objects << item
+          self.add_line(item)
+        elsif item.is_a?(Array)
+          @data_objects << item[1]
+          self.add_line(item[0])
+        end
+
       end
 
       self.last_refreshed = Time.now
@@ -267,6 +279,11 @@ module Wassup
         require 'time'
         #add_line("#{Time.now}")
         add_line("line count: #{data_lines.size}")
+      elsif input == 10 # enter
+        if !self.selection_block.nil? && !self.highlighted_line.nil?
+          data = @data_objects[self.highlighted_line]
+          self.selection_block.call(data)
+        end
       end
     end
   end

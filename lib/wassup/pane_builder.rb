@@ -12,9 +12,13 @@ module Wassup
 
     attr_accessor :interval
     attr_accessor :content_block
+    attr_accessor :selection_block
 
     def content(&block)
       self.content_block = block
+    end
+    def selection(&block)
+      self.selection_block = block
     end
   end
 end
