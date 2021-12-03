@@ -12,13 +12,25 @@ module Wassup
 
     attr_accessor :interval
     attr_accessor :content_block
-    attr_accessor :selection_block
+    attr_accessor :selection_blocks
+
+    def initialize()
+      @height = 1
+      @weight = 1
+      @top = 0
+      @left = 0
+
+      @highlight = false
+      @interval = 60 * 5 
+
+      @selection_blocks = {}
+    end
 
     def content(&block)
       self.content_block = block
     end
-    def selection(&block)
-      self.selection_block = block
+    def selection(input=10, &block)
+      self.selection_blocks[input] = block
     end
   end
 end

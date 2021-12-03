@@ -27,7 +27,7 @@ module Wassup
     attr_accessor :interval
     attr_accessor :last_refreshed
     attr_accessor :content_block
-    attr_accessor :selection_block
+    attr_accessor :selection_blocks
 
     attr_accessor :content_thread
 
@@ -36,7 +36,7 @@ module Wassup
 
     attr_accessor :win_height, :win_width, :win_top, :win_left
 
-    def initialize(height, width, top, left, title: nil, highlight: true, focus_number: nil, interval:, content_block:, selection_block:)
+    def initialize(height, width, top, left, title: nil, highlight: true, focus_number: nil, interval:, content_block:, selection_blocks:)
       self.win_height = Curses.lines * height	
       self.win_width = Curses.cols * width
       self.win_top = Curses.lines * top
@@ -65,7 +65,7 @@ module Wassup
 
       self.interval = interval
       self.content_block = content_block
-      self.selection_block = selection_block
+      self.selection_blocks = selection_blocks || {}
     end
 
     def setup_subwin
@@ -120,8 +120,8 @@ module Wassup
       end
     end
 
-    def refresh
-      return unless needs_refresh?
+    def refresh(force: false)
+      return if !needs_refresh? && !force
 
       thread = self.content_thread
       if !thread.nil?
@@ -447,27 +447,32 @@ module Wassup
 
       if input == "j"
         if virtual_scroll
-          virtual_scroll_down
+          self.virtual_scroll_down
         else
           scroll_down
         end
       elsif input == "k"
         if virtual_scroll
-          virtual_scroll_up
+          self.virtual_scroll_up
         else
           scroll_up
         end
       elsif input == "h"
-        scroll_left
+        self.scroll_left
       elsif input == "l"
-        scroll_right
+        self.scroll_right
+      elsif input == "r"
+        self.refresh(force: true)
       elsif input == "q"
         # TODO: This needs to quit
         # Need to kill the loop or something
-      elsif input == 10 # enter
-        if !self.selection_block.nil? && !self.highlighted_line.nil?
+      elsif input == "?"
+        # show help something
+      else
+        selection_block = self.selection_blocks[input]
+        if !selection_block.nil? && !self.highlighted_line.nil?
           data = @data_objects[self.highlighted_line]
-          self.selection_block.call(data)
+          selection_block.call(data)
         end
       end
     end

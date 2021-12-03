@@ -145,15 +145,22 @@ add_pane do |pane|
         status = "[fg=yellow]#{status}[fg=white]"
       end
 
-      ["#{number} (#{status}) by #{login} - #{message}", workflow]
+      ["#{number} (#{status}) by #{login} - #{message}", [item, workflow]]
     end
   end
   pane.selection do |data|
-    slug = data["project_slug"]
-    pipeline_number = data["pipeline_number"]
-    workflow_id = data["id"]
+    workflow = data[1]
+
+    slug = workflow["project_slug"]
+    pipeline_number = workflow["pipeline_number"]
+    workflow_id = workflow["id"]
 
     url = "https://app.circleci.com/pipelines/#{slug}/#{pipeline_number}/workflows/#{workflow_id}"
+    `open #{url}`
+  end
+  pane.selection('o') do |data|
+    pipeline = data[0]
+    url = pipeline["vcs"]["review_url"]
     `open #{url}`
   end
 end
