@@ -29,6 +29,8 @@ module Wassup
     attr_accessor :content_block
     attr_accessor :selection_block
 
+    attr_accessor :content_thread
+
     attr_accessor :selected_view_index
     attr_accessor :all_view_data_objects
 
@@ -111,11 +113,54 @@ module Wassup
       return Time.now - self.interval > self.last_refreshed
     end
 
+    class Ope
+      attr_accessor :error 
+      def initialize(error)
+        @error = error
+      end
+    end
+
     def refresh
       return unless needs_refresh?
 
-      content = self.content_block.call()
+      thread = self.content_thread
+      if !thread.nil?
+        if thread.status == "sleep" || thread.status == "run" || thread.status == "aborting"
+          return
+        elsif thread.status == nil
+          self.add_line("an error occured")
+          return
+        elsif thread.status == false
+          content = thread.value
+          if content.is_a?(Ope)
+            self.refresh_content([
+              "[fg=red]Error during refersh[fg=white]",
+              "[fg=red]at #{Time.now}[fg=while]",
+              "",
+              "[fg=yellow]Will try again next interval[fg=white]"
+            ])
+          else
+            self.refresh_content(content)
+          end
+        else
+          self.add_line("an error occured")
+          # This shouldn't happen
+          # TODO: also fix this
+          return
+        end
+      else
+        the_block = self.content_block
+        self.content_thread = Thread.new {
+          begin
+            content = the_block.call()
+          rescue => ex
+            next Ope.new(ex)
+          end
+        }
+      end
+    end
 
+    def refresh_content(content)
       return unless content.is_a?(Array)
       return if content.first.nil?
 
@@ -128,8 +173,9 @@ module Wassup
       end
 
       self.load_current_view()
-
       self.last_refreshed = Time.now
+
+      self.content_thread = nil
     end
 
     def load_current_view

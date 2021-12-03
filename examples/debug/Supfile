@@ -1,0 +1,54 @@
+add_pane do |pane|
+  pane.height = 0.25
+  pane.width = 0.25
+  pane.top = 0
+  pane.left = 0
+
+  pane.highlight = false
+  pane.title = "Time Update - Every Second"
+
+  pane.interval = 1
+  pane.content do
+    [
+      `date`
+    ]
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.25
+  pane.width = 0.25
+  pane.top = 0.25
+  pane.left = 0
+
+  pane.highlight = false
+  pane.title = "Time Update - Every 5 Seconds"
+
+  pane.interval = 5
+  pane.content do
+    [
+      `date`
+    ]
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.25
+  pane.width = 0.35
+  pane.top = 0
+  pane.left = 0.25
+
+  pane.highlight = false
+  pane.title = "Maybe Error - Every 10 Seconds"
+
+  pane.interval = 10
+  pane.content do
+    if [true, false].sample
+      raise "An error occured! Oh no!"
+    end
+
+    [
+      "[fg=cyan]No error occured[fg=white]"
+    ]
+  end
+end
