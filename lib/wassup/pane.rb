@@ -128,7 +128,7 @@ module Wassup
         if thread.status == "sleep" || thread.status == "run" || thread.status == "aborting"
           return
         elsif thread.status == nil
-          self.add_line("an error occured")
+          self.add_line("thread status is nil")
           return
         elsif thread.status == false
           content = thread.value
@@ -143,7 +143,6 @@ module Wassup
             self.refresh_content(content)
           end
         else
-          self.add_line("an error occured")
           # This shouldn't happen
           # TODO: also fix this
           return
@@ -463,11 +462,6 @@ module Wassup
         self.scroll_right
       elsif input == "r"
         self.refresh(force: true)
-      elsif input == "q"
-        # TODO: This needs to quit
-        # Need to kill the loop or something
-      elsif input == "?"
-        # show help something
       else
         selection_block = self.selection_blocks[input]
         if !selection_block.nil? && !self.highlighted_line.nil?

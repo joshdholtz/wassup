@@ -46,7 +46,12 @@ module Wassup
       @focused_pane = nil
       @panes = {}
 
+      # TODO: this could maybe get replaced with selection_blocks now
       @focus_handler = Proc.new do |input|
+        if input == "q"
+          exit
+        end
+
         if (pane = @panes[input.to_s])
           @focused_pane.focused = false
 
