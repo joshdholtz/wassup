@@ -147,6 +147,9 @@ add_pane do |pane|
 
       ["#{number} (#{status}) by #{login} - #{message}", [item, workflow]]
     end
+
+    rescue
+      ["Failed to fetch for reason"]
   end
   pane.selection do |data|
     workflow = data[1]

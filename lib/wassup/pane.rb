@@ -6,9 +6,9 @@ module Wassup
   class Pane
     attr_accessor :win
     attr_accessor :subwin
-    attr_accessor :data_lines
-    attr_accessor :data_objects
     attr_accessor :top
+
+		attr_accessor :contents
 
     attr_accessor :title
 
@@ -32,9 +32,32 @@ module Wassup
     attr_accessor :content_thread
 
     attr_accessor :selected_view_index
-    attr_accessor :all_view_data_objects
 
     attr_accessor :win_height, :win_width, :win_top, :win_left
+
+		class Content
+			class Row
+				attr_accessor :display
+				attr_accessor :object
+
+				def initialize(display, object)
+					@display = display
+					@object = object || display
+				end
+			end
+
+			attr_accessor :title
+			attr_accessor :data
+
+			def initialize(title = nil)
+				@title = title
+				@data = []	
+			end
+
+			def add_row(display, object = nil)
+				@data << Row.new(display, object)
+			end
+		end
 
     def initialize(height, width, top, left, title: nil, highlight: true, focus_number: nil, interval:, content_block:, selection_blocks:)
       self.win_height = Curses.lines * height	
@@ -52,11 +75,10 @@ module Wassup
       self.virtual_scroll = true
 
       self.top = 0
-      self.data_lines = []
-      self.data_objects = []
+
+			self.contents = []
      
       self.selected_view_index = 0
-      self.all_view_data_objects = [] # Array of array
 
       self.win.refresh
       self.subwin.refresh
@@ -77,16 +99,16 @@ module Wassup
         self.subwin = nil
       end
 
-      if (@all_view_data_objects || []).size > 1
+      if (self.contents || []).size > 1
         top_bump = 4
 
-        view_title = (self.all_view_data_objects[self.selected_view_index] || {})[:title]
+        view_title = self.contents[self.selected_view_index].title || "<No Title>"
         view_title += " " * 100
 
         self.win.setpos(2, 2)
         self.win.addstr(view_title[0...self.win.maxx()-3])
 
-        subtitle = "(#{self.selected_view_index + 1} out of #{self.all_view_data_objects.size})"
+        subtitle = "(#{self.selected_view_index + 1} out of #{self.contents.size})"
         subtitle += " " * 100
         self.win.setpos(3, 2)
         self.win.addstr(subtitle[0...self.win.maxx()-3])
@@ -120,6 +142,17 @@ module Wassup
       end
     end
 
+		def data_lines
+			return [] if self.selected_view_index.nil?
+			content = (self.contents || [])[self.selected_view_index]
+
+			if content.nil?
+				return []
+			else
+				content.data.map(&:display)
+			end
+		end
+
     def refresh(force: false)
       return if !needs_refresh? && !force
 
@@ -128,7 +161,6 @@ module Wassup
         if thread.status == "sleep" || thread.status == "run" || thread.status == "aborting"
           return
         elsif thread.status == nil
-          self.add_line("thread status is nil")
           return
         elsif thread.status == false
           content = thread.value
@@ -159,47 +191,51 @@ module Wassup
       end
     end
 
-    def refresh_content(content)
-      return unless content.is_a?(Array)
-      return if content.first.nil?
+    def refresh_content(raw_content)
+      return unless raw_content.is_a?(Array)
+      return if raw_content.first.nil?
 
-      if content.first.is_a?(Hash)
-        self.all_view_data_objects = content
+      if raw_content.first.is_a?(Hash)
+				self.contents = raw_content.map do |hash|
+					content = Pane::Content.new(hash[:title])
+					hash[:content].each do |raw_row|
+						if raw_row.is_a?(Array)
+							content.add_row(raw_row[0], raw_row[1])
+						else
+							content.add_row(raw_row)
+						end
+					end
+
+					content
+				end
       else
-        self.all_view_data_objects = [
-          content
-        ]
+				content = Pane::Content.new
+				raw_content.each do |raw_row|
+					if raw_row.is_a?(Array)
+						content.add_row(raw_row[0], raw_row[1])
+					else
+						content.add_row(raw_row)
+					end
+				end
+
+				self.contents = [content]
+        #  content
+        #]
       end
 
       self.load_current_view()
       self.last_refreshed = Time.now
 
       self.content_thread = nil
+
     end
 
     def load_current_view
       self.setup_subwin()
-      view_content = self.all_view_data_objects[self.selected_view_index]
 
       # this might be bad
       self.highlighted_line = nil
-
-      require 'pp'
-      if view_content.is_a?(Hash) && view_content[:content]
-        view_content = view_content[:content]
-      end
-
-      @data_lines = []
-      @data_objects = []
-      view_content.each do |item|
-        if item.is_a?(String)
-          @data_objects << item
-          self.add_line(item)
-        elsif item.is_a?(Array)
-          @data_objects << item[1]
-          self.add_line(item[0])
-        end
-      end
+			self.virtual_reload()
     end
 
     def title=(title)
@@ -236,16 +272,6 @@ module Wassup
       self.win.refresh
     end
 
-    def add_line(text)
-      data_lines << text
-
-      if self.virtual_scroll
-        self.virtual_reload
-      else
-        self.load_thing
-      end
-    end
-
     # Load the file into memory and
     # put the first part on the curses display.
     def load_thing
@@ -258,8 +284,9 @@ module Wassup
     end
 
     def virtual_reload
-      return if self.data_lines.nil?
+      return if self.data_lines.nil? || self.data_lines.empty?
 
+      # TODO: This errored out but might be because thread stuff???
       self.data_lines[self.top..(self.top+self.subwin.maxy-1)].each_with_index do |line, idx|
 
         write_full_line = false
@@ -267,65 +294,49 @@ module Wassup
 
         max_char = self.subwin.maxx()-3 
        
-#        if false && write_full_line || should_highlight
-#          if should_highlight
-#            self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::HIGHLIGHT))
-#          else
-#            self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
-#          end
-#
-#          short_line = line[0...max_char]
-#
-#          self.subwin.setpos(idx, 0)
-#          self.subwin.addstr(short_line)
-#          self.subwin.clrtoeol()
-#
-#          self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
-#        else
-          self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
+				self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
 
-          splits = line.split(/\[.*?\]/) # returns ["hey something", "other thing", "okay"]
-          scans = line.scan(/\[.*?\]/) #returns ["red", "white"]
-          scans = scans.map do |str|
-            if str.start_with?('[fg=')
-              str = str.gsub('[fg=', '').gsub(']','')
-              Wassup::Color.new(str)
-            else
-              str
-            end
-          end
+				splits = line.split(/\[.*?\]/) # returns ["hey something", "other thing", "okay"]
+				scans = line.scan(/\[.*?\]/) #returns ["red", "white"]
+				scans = scans.map do |str|
+					if str.start_with?('[fg=')
+						str = str.gsub('[fg=', '').gsub(']','')
+						Wassup::Color.new(str)
+					else
+						str
+					end
+				end
 
-          all_parts = splits.zip(scans).flatten.compact
-      
-          char_count = 0
+				all_parts = splits.zip(scans).flatten.compact
+		
+				char_count = 0
 
-          if should_highlight
-            self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::HIGHLIGHT))
-          end
+				if should_highlight
+					self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::HIGHLIGHT))
+				end
 
-          all_parts.each do |part|
-            if part.is_a?(Wassup::Color)
-              #color = Curses.color_pair([1,2,3,4].sample)
-              if !should_highlight
-                self.subwin.attrset(Curses.color_pair(part.color_pair))
-              end
-            else
-              new_char_count = char_count + part.size
-              if new_char_count >= max_char
-                part = part[0...(max_char - char_count)]  
-              end
+				all_parts.each do |part|
+					if part.is_a?(Wassup::Color)
+						#color = Curses.color_pair([1,2,3,4].sample)
+						if !should_highlight
+							self.subwin.attrset(Curses.color_pair(part.color_pair))
+						end
+					else
+						new_char_count = char_count + part.size
+						if new_char_count >= max_char
+							part = part[0...(max_char - char_count)]  
+						end
 
-              self.subwin.setpos(idx, char_count)
-              self.subwin.addstr(part)
+						self.subwin.setpos(idx, char_count)
+						self.subwin.addstr(part)
 
-              char_count += part.size
-            end
+						char_count += part.size
+					end
 
-          end
+				end
 
-          self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
-          self.subwin.clrtoeol()
-        #end
+				self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
+				self.subwin.clrtoeol()
       end
       self.subwin.refresh
     end
@@ -387,7 +398,7 @@ module Wassup
     def scroll_left
       self.selected_view_index -= 1
       if self.selected_view_index < 0
-        self.selected_view_index = self.all_view_data_objects.size - 1
+        self.selected_view_index = self.contents.size - 1
       end
 
       self.load_current_view
@@ -395,7 +406,7 @@ module Wassup
 
     def scroll_right
       self.selected_view_index += 1
-      if self.selected_view_index >= self.all_view_data_objects.size
+      if self.selected_view_index >= self.contents.size
         self.selected_view_index = 0
       end
 
@@ -465,7 +476,9 @@ module Wassup
       else
         selection_block = self.selection_blocks[input]
         if !selection_block.nil? && !self.highlighted_line.nil?
-          data = @data_objects[self.highlighted_line]
+					content = self.contents[self.selected_view_index]
+					row = content.data[self.highlighted_line]
+					data = row.object || row.display
           selection_block.call(data)
         end
       end

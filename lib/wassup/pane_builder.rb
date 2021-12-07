@@ -14,6 +14,16 @@ module Wassup
     attr_accessor :content_block
     attr_accessor :selection_blocks
 
+    class ContentBuilder
+      attr_accessor :clear
+      attr_accessor :content
+
+      def initialize()
+        @clear = false
+        @content = []
+      end
+    end
+
     def initialize()
       @height = 1
       @weight = 1
