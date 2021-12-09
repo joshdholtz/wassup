@@ -22,7 +22,7 @@ add_pane do |pane|
   pane.title = "Stats: fastlane-community"
 
   pane.interval = 1
-  pane.content do
+  pane.content do |builder|
     days_1 = 0
     days_7 = 0
     days_30 = 0
@@ -41,13 +41,11 @@ add_pane do |pane|
       days_365 +=1 if days <= 365
     end
 
-    [
-      "Opened today: #{days_1}",
-      "Opened 7 days: #{days_7}",
-      "Opened 30 days: #{days_30}",
-      "Opened 60 days: #{days_60}",
-      "Opened 365 days: #{days_365}"
-    ] 
+    builder.add_row("Opened today: #{days_1}")
+    builder.add_row("Opened 7 days: #{days_7}")
+    builder.add_row("Opened 30 days: #{days_30}")
+    builder.add_row("Opened 60 days: #{days_60}")
+    builder.add_row("Opened 365 days: #{days_365}")
   end
 end
 
@@ -65,7 +63,7 @@ add_pane do |pane|
   pane.title = "Stats: fastlane/fastlane"
 
   pane.interval = 1
-  pane.content do
+  pane.content do |builder|
     days_1 = 0
     days_7 = 0
     days_30 = 0
@@ -86,14 +84,12 @@ add_pane do |pane|
       days_60_plus +=1 if days > 60
     end
 
-    [
-      "Opened today: #{days_1}",
-      "Opened 7 days: #{days_7}",
-      "Opened 30 days: #{days_30}",
-      "Opened 45 days: #{days_45}",
-      "Opened 60 days: #{days_60}",
-      "More than 60 days: #{days_60_plus}",
-    ] 
+    builder.add_row("Opened today: #{days_1}")
+    builder.add_row("Opened 7 days: #{days_7}")
+    builder.add_row("Opened 30 days: #{days_30}")
+    builder.add_row("Opened 45 days: #{days_45}")
+    builder.add_row("Opened 60 days: #{days_60}")
+    builder.add_row("More than 60 days: #{days_60_plus}")
   end
 end
 
@@ -111,7 +107,7 @@ add_pane do |pane|
   pane.title = "Circle CI - fastlane/fastlane"
 
   pane.interval = 60 * 5
-  pane.content do 
+  pane.content do |builder|
     resp = RestClient::Request.execute(
       method: :get, 
       url: "https://circleci.com/api/v2/project/github/fastlane/fastlane/pipeline", 
@@ -145,11 +141,11 @@ add_pane do |pane|
         status = "[fg=yellow]#{status}[fg=white]"
       end
 
-      ["#{number} (#{status}) by #{login} - #{message}", [item, workflow]]
-    end
+      display = "#{number} (#{status}) by #{login} - #{message}"
+      object = [item, workflow]
 
-    rescue
-      ["Failed to fetch for reason"]
+      builder.add_row(display, object)
+    end
   end
   pane.selection do |data|
     workflow = data[1]
@@ -182,7 +178,7 @@ add_pane do |pane|
   pane.title = "Open PRs - fastlane-community"
 
   pane.interval = 60 * 5
-  pane.content do
+  pane.content do |builder|
     fastlane_community_prs = []
 
     resp = RestClient::Request.execute(
@@ -216,13 +212,9 @@ add_pane do |pane|
         days = (Time.now - date).to_i / (24 * 60 * 60)
         days_formatted = '%3.3s' % days.to_s
 
-        ["[fg=yellow]#{number_formatted}[fg=cyan] #{days_formatted}d ago[fg=white] #{title}",pr]
+        display = "[fg=yellow]#{number_formatted}[fg=cyan] #{days_formatted}d ago[fg=white] #{title}"
+        builder.add_row(display, pr, page: name)
       end
-
-      {
-        title: name,
-        content: prs
-      }
     end
   end
   pane.selection do |data|
@@ -246,7 +238,7 @@ add_pane do |pane|
   pane.title = "Open PRs - fastlane/fastlane"
 
   pane.interval = 60 * 5
-  pane.content do
+  pane.content do |builder|
     fastlane_prs = []
 
     resp = RestClient::Request.execute(
@@ -267,7 +259,8 @@ add_pane do |pane|
       days = (Time.now - date).to_i / (24 * 60 * 60)
       days_formatted = '%3.3s' % days.to_s
 
-      ["[fg=yellow]##{number}[fg=cyan] #{days_formatted}d ago[fg=white] #{title}",pr]
+      display = "[fg=yellow]##{number}[fg=cyan] #{days_formatted}d ago[fg=white] #{title}"
+      builder.add_row(display, pr)
     end
   end
   pane.selection do |data|

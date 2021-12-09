@@ -163,16 +163,18 @@ module Wassup
         elsif thread.status == nil
           return
         elsif thread.status == false
-          content = thread.value
-          if content.is_a?(Ope)
-            self.refresh_content([
-              "[fg=red]Error during refersh[fg=white]",
-              "[fg=red]at #{Time.now}[fg=while]",
-              "",
-              "[fg=yellow]Will try again next interval[fg=white]"
-            ])
-          else
-            self.refresh_content(content)
+          rtn = thread.value
+          if rtn.is_a?(Ope)
+						content = Wassup::Pane::Content.new
+
+						content.add_row("[fg=red]Error during refersh[fg=white]")
+						content.add_row("[fg=red]at #{Time.now}[fg=while]")
+						content.add_row("")
+						content.add_row("[fg=yellow]Will try again next interval[fg=white]")
+
+            self.refresh_content([content])
+          elsif rtn.is_a?(Wassup::PaneBuilder::ContentBuilder)
+            self.refresh_content(rtn.contents)
           end
         else
           # This shouldn't happen
@@ -183,7 +185,10 @@ module Wassup
         the_block = self.content_block
         self.content_thread = Thread.new {
           begin
-            content = the_block.call()
+						builder = Wassup::PaneBuilder::ContentBuilder.new(self.contents)
+            content = the_block.call(builder)
+
+						builder
           rescue => ex
             next Ope.new(ex)
           end
@@ -191,38 +196,8 @@ module Wassup
       end
     end
 
-    def refresh_content(raw_content)
-      return unless raw_content.is_a?(Array)
-      return if raw_content.first.nil?
-
-      if raw_content.first.is_a?(Hash)
-				self.contents = raw_content.map do |hash|
-					content = Pane::Content.new(hash[:title])
-					hash[:content].each do |raw_row|
-						if raw_row.is_a?(Array)
-							content.add_row(raw_row[0], raw_row[1])
-						else
-							content.add_row(raw_row)
-						end
-					end
-
-					content
-				end
-      else
-				content = Pane::Content.new
-				raw_content.each do |raw_row|
-					if raw_row.is_a?(Array)
-						content.add_row(raw_row[0], raw_row[1])
-					else
-						content.add_row(raw_row)
-					end
-				end
-
-				self.contents = [content]
-        #  content
-        #]
-      end
-
+    def refresh_content(contents)
+			self.contents = contents
       self.load_current_view()
       self.last_refreshed = Time.now
 
