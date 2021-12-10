@@ -21,7 +21,7 @@ add_pane do |pane|
 
   pane.title = "Stats: fastlane-community"
 
-  pane.interval = 1
+  pane.interval = 10
   pane.content do |builder|
     days_1 = 0
     days_7 = 0
@@ -62,7 +62,7 @@ add_pane do |pane|
 
   pane.title = "Stats: fastlane/fastlane"
 
-  pane.interval = 1
+  pane.interval = 10
   pane.content do |builder|
     days_1 = 0
     days_7 = 0

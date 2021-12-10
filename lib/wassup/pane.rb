@@ -153,6 +153,10 @@ module Wassup
 			end
 		end
 
+		def refreshing?
+			return !self.content_thread.nil?
+		end
+
     def refresh(force: false)
       return if !needs_refresh? && !force
 
@@ -176,6 +180,10 @@ module Wassup
           elsif rtn.is_a?(Wassup::PaneBuilder::ContentBuilder)
             self.refresh_content(rtn.contents)
           end
+
+					self.content_thread = nil
+					self.update_box
+					self.update_title
         else
           # This shouldn't happen
           # TODO: also fix this
@@ -193,6 +201,8 @@ module Wassup
             next Ope.new(ex)
           end
         }
+				self.update_box
+				self.update_title
       end
     end
 
@@ -224,6 +234,10 @@ module Wassup
 
       title = self.title || "<No Title>"
       full_title = "#{self.focus_number} - #{title}"
+
+			if self.refreshing?
+				full_title += " (Refreshing)"
+			end
 
       self.win.setpos(0, 3)
       self.win.addstr(full_title)
