@@ -34,6 +34,7 @@ module Wassup
         highlight: pane_builder.highlight, 
         focus_number: number,
         interval: pane_builder.interval,
+        show_refresh: pane_builder.show_refresh,
         content_block: pane_builder.content_block,
         selection_blocks: pane_builder.selection_blocks
       )
@@ -74,7 +75,7 @@ module Wassup
 
       begin
 
-        @hidden_pane = Pane.new(0, 0, 0, 0, highlight: false, focus_number: 0, interval: nil, content_block: nil, selection_blocks: nil)
+        @hidden_pane = Pane.new(0, 0, 0, 0, highlight: false, focus_number: 0, interval: nil, show_refresh: false, content_block: nil, selection_blocks: nil)
         @hidden_pane.focus_handler = @focus_handler
         @focused_pane = @hidden_pane
 

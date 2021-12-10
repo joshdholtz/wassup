@@ -21,7 +21,8 @@ add_pane do |pane|
 
   pane.title = "Stats: fastlane-community"
 
-  pane.interval = 1
+  pane.interval = 2
+  pane.show_refresh = false
   pane.content do |builder|
     days_1 = 0
     days_7 = 0
@@ -62,7 +63,8 @@ add_pane do |pane|
 
   pane.title = "Stats: fastlane/fastlane"
 
-  pane.interval = 1
+  pane.interval = 2
+  pane.show_refresh = false
   pane.content do |builder|
     days_1 = 0
     days_7 = 0
@@ -107,6 +109,7 @@ add_pane do |pane|
   pane.title = "Circle CI - fastlane/fastlane"
 
   pane.interval = 60 * 5
+  pane.show_refresh = true
   pane.content do |builder|
     resp = RestClient::Request.execute(
       method: :get, 
@@ -121,7 +124,7 @@ add_pane do |pane|
     end.map do |item|
       id = item["id"]
       number = item["number"]
-      message = item["vcs"]["commit"]["subject"]
+      message = (item["vcs"]["commit"] || {})["subject"]
       login = item["trigger"]["actor"]["login"]
 
       resp = RestClient::Request.execute(
@@ -178,6 +181,7 @@ add_pane do |pane|
   pane.title = "Open PRs - fastlane-community"
 
   pane.interval = 60 * 5
+  pane.show_refresh = true
   pane.content do |builder|
     fastlane_community_prs = []
 
@@ -238,6 +242,7 @@ add_pane do |pane|
   pane.title = "Open PRs - fastlane/fastlane"
 
   pane.interval = 60 * 5
+  pane.show_refresh = true
   pane.content do |builder|
     fastlane_prs = []
 

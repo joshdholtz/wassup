@@ -10,6 +10,8 @@ module Wassup
 
     attr_accessor :title
 
+    attr_accessor :show_refresh
+
     attr_accessor :interval
     attr_accessor :content_block
     attr_accessor :selection_blocks
@@ -20,6 +22,7 @@ module Wassup
       def initialize(contents)
         @contents = contents
         @need_to_clear = true
+        @show_refresh = true
       end
 
       def clear=(clear)

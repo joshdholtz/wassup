@@ -24,7 +24,7 @@ add_pane do |pane|
   pane.highlight = false
   pane.title = "Time Update - Every 5 Seconds"
 
-  pane.interval = 5
+  pane.interval = 30
   pane.content do |content|
     date = `date`
 
@@ -68,5 +68,46 @@ add_pane do |pane|
     content.add_row("Line 2 of page 1", page: "Page 1")
     content.add_row("Line 1 of page 2", page: "Page 2")
     content.add_row("Line 2 of page 2", page: "Page 2")
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.25
+  pane.width = 0.6
+  pane.top = 0.5
+  pane.left = 0
+
+  pane.highlight = false
+  pane.title = "Time Update - Slow Reload"
+
+  pane.interval = 30
+  pane.show_refresh = true
+  pane.content do |content|
+    sleep 10
+
+    date = `date`
+
+    content.add_row(date)
+  end
+end
+
+require 'stringio'
+foo = StringIO.new
+$stdout = foo
+
+add_pane do |pane|
+  pane.height = 1
+  pane.width = 0.4
+  pane.top = 0.0
+  pane.left = 0.6
+
+  pane.highlight = false
+  pane.title = "STDOUT"
+
+  pane.interval = 4
+  pane.content do |content|
+    $stdout.string.split("\n").each do |line|
+      content.add_row(line)
+    end 
   end
 end

@@ -30,6 +30,7 @@ module Wassup
     attr_accessor :selection_blocks
 
     attr_accessor :content_thread
+    attr_accessor :show_refresh
 
     attr_accessor :selected_view_index
 
@@ -59,7 +60,7 @@ module Wassup
 			end
 		end
 
-    def initialize(height, width, top, left, title: nil, highlight: true, focus_number: nil, interval:, content_block:, selection_blocks:)
+    def initialize(height, width, top, left, title: nil, highlight: true, focus_number: nil, interval:, show_refresh:, content_block:, selection_blocks:)
       self.win_height = Curses.lines * height	
       self.win_width = Curses.cols * width
       self.win_top = Curses.lines * top
@@ -77,6 +78,7 @@ module Wassup
       self.top = 0
 
 			self.contents = []
+      self.show_refresh = show_refresh
      
       self.selected_view_index = 0
 
@@ -153,12 +155,21 @@ module Wassup
 			end
 		end
 
+		def refreshing?
+			return !self.content_thread.nil?
+		end
+
     def refresh(force: false)
-      return if !needs_refresh? && !force
+      if force
+        self.last_refreshed = nil
+      end
+
+      return if !needs_refresh?
 
       thread = self.content_thread
       if !thread.nil?
         if thread.status == "sleep" || thread.status == "run" || thread.status == "aborting"
+          self.update_refresh
           return
         elsif thread.status == nil
           return
@@ -176,6 +187,9 @@ module Wassup
           elsif rtn.is_a?(Wassup::PaneBuilder::ContentBuilder)
             self.refresh_content(rtn.contents)
           end
+
+					self.update_box
+					self.update_title
         else
           # This shouldn't happen
           # TODO: also fix this
@@ -193,6 +207,8 @@ module Wassup
             next Ope.new(ex)
           end
         }
+				self.update_box
+				self.update_title
       end
     end
 
@@ -202,7 +218,6 @@ module Wassup
       self.last_refreshed = Time.now
 
       self.content_thread = nil
-
     end
 
     def load_current_view
@@ -217,6 +232,44 @@ module Wassup
       @title = title
       self.update_box()
       self.update_title()
+    end
+
+    attr_accessor :refresh_char_count
+    def refresh_char
+      return "" unless self.show_refresh
+
+      if self.refresh_char_count.nil?
+        self.refresh_char_count = 0
+      end
+
+      if self.refreshing?
+        array = ['\\', '|', '/', '|']
+        rtn = array[self.refresh_char_count]
+
+        self.refresh_char_count += 1
+        if self.refresh_char_count >= array.size
+          self.refresh_char_count = 0
+        end
+
+        return rtn
+      else
+        return ""
+      end
+    end
+
+    attr_accessor :last_refresh_char_at
+    def update_refresh
+      return unless self.should_box
+
+      self.last_refresh_char_at ||= Time.now
+
+      if Time.now - self.last_refresh_char_at >= 0.15
+        self.win.setpos(0, 1)
+        self.win.addstr(self.refresh_char)
+        self.win.refresh
+
+        self.last_refresh_char_at = Time.now
+      end
     end
       
     def update_title
