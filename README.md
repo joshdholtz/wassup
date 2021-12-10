@@ -1,5 +1,5 @@
 <h3 align="center">
-  <img height="200" alt="Wassup logo" src="https://user-images.githubusercontent.com/401294/145612949-600b6b13-3008-4a27-8564-590245333249.png" />
+  <img height="200" alt="Wassup logo" src="https://user-images.githubusercontent.com/401294/145626927-7eb0fda5-c62a-47c8-9422-074b178fd8ef.png" />
 </h3>
 
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/fastlane/fastlane/blob/master/LICENSE)
