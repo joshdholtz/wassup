@@ -27,7 +27,7 @@ add_pane do |pane|
   pane.title = "Open PRs - fastlane/fastlane"
 
   pane.interval = 60 * 5
-  pane.content do
+  pane.content do |builder|
     resp = RestClient.get "https://api.github.com/repos/fastlane/fastlane/pulls"
     json = JSON.parse(resp)
     json.map do |pr|
@@ -35,7 +35,7 @@ add_pane do |pane|
       
       # First element is displayed
       # Second element is passed to pane.selection
-      [display, pr["html_url"]]   
+      builder.add_row(display, pr["html_url"]) 
     end
   end
   pane.selection do |url|
