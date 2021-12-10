@@ -12,4 +12,6 @@
 
 *.gem
 
+.DS_Store
+
 *.swp
