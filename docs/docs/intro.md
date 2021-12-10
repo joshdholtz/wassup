@@ -2,11 +2,7 @@
 sidebar_position: 1
 ---
 
-# Tutorial Intro
-
-Let's discover **Wassup in less than 5 minutes**.
-
-## Getting Started
+# Getting Started
 
 Get started by **installing the gem**.
 
@@ -30,7 +26,7 @@ gem "wassup"
 
 Create a `Supfile` with the following contents:
 
-```ruby
+```ruby title="Supfile"
 add_pane do |pane|
   pane.height = 0.5
   pane.width = 0.4
