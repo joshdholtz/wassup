@@ -1,6 +1,5 @@
-# Wassup
+<img height="200" src="https://user-images.githubusercontent.com/401294/145612949-600b6b13-3008-4a27-8564-590245333249.png" />
 
-A scriptable terminal dashboard
 
 
 https://user-images.githubusercontent.com/401294/144465499-a8903d4c-f003-4550-b47c-f70c17cc02d8.mov
