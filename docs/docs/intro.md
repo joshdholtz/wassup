@@ -4,32 +4,55 @@ sidebar_position: 1
 
 # Tutorial Intro
 
-Let's discover **Docusaurus in less than 5 minutes**.
+Let's discover **Wassup in less than 5 minutes**.
 
 ## Getting Started
 
-Get started by **creating a new site**.
+Get started by **installing the gem**.
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+## Installing
 
-## Generate a new site
-
-Generate a new Docusaurus site using the **classic template**:
+Install **Wassup** from RubyGems:
 
 ```shell
-npm init docusaurus@latest my-website classic
+gem install wassup
 ```
 
-## Start your site
+Or in a `Gemfile`:
 
-Run the development server:
+```rb
+source "https://rubygems.org"
 
-```shell
-cd my-website
-
-npx docusaurus start
+gem "wassup"
 ```
 
-Your site starts at `http://localhost:3000`.
+## Create Your First `Supfile`
 
-Open `docs/intro.md` and edit some lines: the site **reloads automatically** and displays your changes.
+Create a `Supfile` with the following contents:
+
+```ruby
+add_pane do |pane|
+  pane.height = 0.5
+  pane.width = 0.4
+  pane.top = 0
+  pane.left = 0
+
+  pane.highlight = false
+  pane.title = "Current Time"
+
+  pane.interval = 1
+  pane.content do |content|
+    date = `date`
+
+    content.add_row(date)
+  end
+end
+```
+
+Run `wassup` (or `bundle exec wassup` if using a `Gemfile`) from your terminal in the same directory as your `Supfile`.
+
+### Screenshot
+
+You should see a pane in the top left corner that updates the time every second.
+
+![Tutorial intro starter screenshot](/img/tutorial-intro-starter-screenshot.png)

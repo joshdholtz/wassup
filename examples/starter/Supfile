@@ -1,0 +1,44 @@
+add_pane do |pane|
+  pane.height = 0.5
+  pane.width = 0.4
+  pane.top = 0
+  pane.left = 0
+
+  pane.highlight = false
+  pane.title = "Current Time"
+
+  pane.interval = 1
+  pane.content do |content|
+    date = `date`
+
+    content.add_row(date)
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.5
+  pane.width = 0.6
+  pane.top = 0
+  pane.left = 0.4
+
+  pane.highlight = false
+  pane.title = "Open PRs - fastlane/fastlane"
+
+  pane.interval = 60 * 5
+  pane.content do |content|
+		require 'uri'
+		require 'net/http'
+		require 'json'
+
+		uri = URI('https://api.github.com/repos/fastlane/fastlane/pulls')
+		res = Net::HTTP.get_response(uri)
+
+		JSON.parse(res.body).each do |pr|
+			display = "[fg=cyan]##{pr['number']} - [fg=white]#{pr['title']}"
+    	content.add_row(display)
+		end
+  end
+	pane.selection do |pr|
+		`open #{pr['html_url']}`
+	end
+end
