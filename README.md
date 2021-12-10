@@ -9,7 +9,7 @@
 
 <hr/>
 
-https://user-images.githubusercontent.com/401294/144465499-a8903d4c-f003-4550-b47c-f70c17cc02d8.mov
+https://user-images.githubusercontent.com/401294/145632767-d75a8244-b68f-4838-8ff4-4017ba0c1ed2.mov
 
 ## Example `Supfile`
 
