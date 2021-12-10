@@ -1,6 +1,13 @@
-<img height="200" src="https://user-images.githubusercontent.com/401294/145612949-600b6b13-3008-4a27-8564-590245333249.png" />
+<h3 align="center">
+  <img height="200" alt="Wassup logo" src="https://user-images.githubusercontent.com/401294/145612949-600b6b13-3008-4a27-8564-590245333249.png" />
+</h3>
 
+[![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/fastlane/fastlane/blob/master/LICENSE)
+[![Gem](https://img.shields.io/gem/v/wassup.svg?style=flat)](https://rubygems.org/gems/wassup)
 
+**Wassup** is a scriptable terminal dashboard. Configure panes and content logic in a `Supfile` and then run `wassup`.
+
+<hr/>
 
 https://user-images.githubusercontent.com/401294/144465499-a8903d4c-f003-4550-b47c-f70c17cc02d8.mov
 
