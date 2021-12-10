@@ -22,7 +22,7 @@ module Wassup
       def initialize(contents)
         @contents = contents
         @need_to_clear = true
-        @show_refresh = false
+        @show_refresh = true
       end
 
       def clear=(clear)
