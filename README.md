@@ -33,8 +33,8 @@ add_pane do |pane|
     json.map do |pr|
       display = "##{pr["number"]} pr["title"]"
       
-      # First element is displayed
-      # Second element is passed to pane.selection
+      # First argument is displayed
+      # Second argument is passed to pane.selection
       builder.add_row(display, pr["html_url"]) 
     end
   end
