@@ -8,10 +8,10 @@ add_pane do |pane|
   pane.title = "Time Update - Every Second"
 
   pane.interval = 1
-  pane.content do
-    [
-      `date`
-    ]
+  pane.content do |content|
+    date = `date`
+
+    content.add_row(date)
   end
 end
 
@@ -25,10 +25,10 @@ add_pane do |pane|
   pane.title = "Time Update - Every 5 Seconds"
 
   pane.interval = 5
-  pane.content do
-    [
-      `date`
-    ]
+  pane.content do |content|
+    date = `date`
+
+    content.add_row(date)
   end
 end
 
@@ -42,13 +42,31 @@ add_pane do |pane|
   pane.title = "Maybe Error - Every 10 Seconds"
 
   pane.interval = 10
-  pane.content do
+  pane.content do |content|
     if [true, false].sample
       raise "An error occured! Oh no!"
     end
 
-    [
-      "[fg=cyan]No error occured[fg=white]"
-    ]
+    output = "[fg=cyan]No error occured[fg=white]"
+
+    content.add_row(output)
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.25
+  pane.width = 0.35
+  pane.top = 0.25
+  pane.left = 0.25
+
+  pane.highlight = false
+  pane.title = "Multiple Contents"
+
+  pane.interval = 10
+  pane.content do |content|
+    content.add_row("Line 1 of page 1", page: "Page 1")
+    content.add_row("Line 2 of page 1", page: "Page 1")
+    content.add_row("Line 1 of page 2", page: "Page 2")
+    content.add_row("Line 2 of page 2", page: "Page 2")
   end
 end
