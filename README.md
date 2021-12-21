@@ -17,10 +17,10 @@ https://user-images.githubusercontent.com/401294/145632767-d75a8244-b68f-4838-8f
 require 'json'
 require 'rest-client'
 
-add_pane do |pane|                                                                                                   
-  pane.height = 0.5                                                                                                  
-  pane.width = 00.5                                                                                                   
-  pane.top = 0                                                                                                   
+add_pane do |pane|
+  pane.height = 0.5
+  pane.width = 0.5
+  pane.top = 0
   pane.left = 0
 
   pane.highlight = true
@@ -31,11 +31,11 @@ add_pane do |pane|
     resp = RestClient.get "https://api.github.com/repos/fastlane/fastlane/pulls"
     json = JSON.parse(resp)
     json.map do |pr|
-      display = "##{pr["number"]} pr["title"]"
-      
+      display = "##{pr["number"]} #{pr["title"]}"
+
       # First argument is displayed
       # Second argument is passed to pane.selection
-      builder.add_row(display, pr["html_url"]) 
+      builder.add_row(display, pr["html_url"])
     end
   end
   pane.selection do |url|
