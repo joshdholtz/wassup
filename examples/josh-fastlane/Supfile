@@ -107,6 +107,9 @@ add_pane do |pane|
   pane.highlight = true
 
   pane.title = "Circle CI - fastlane/fastlane"
+  pane.description = [
+    "Shows workflows from last 14 days"
+  ]
 
   pane.interval = 60 * 5
   pane.show_refresh = true
@@ -134,6 +137,9 @@ add_pane do |pane|
       )
       json = JSON.parse(resp)
       workflow = json["items"].first
+
+      next if workflow.nil?
+
       status = workflow["status"]
 
       if status == "failed"
@@ -150,7 +156,7 @@ add_pane do |pane|
       builder.add_row(display, object)
     end
   end
-  pane.selection do |data|
+  pane.selection('enter', 'Opens up CirceCI workflow') do |data|
     workflow = data[1]
 
     slug = workflow["project_slug"]
@@ -160,7 +166,7 @@ add_pane do |pane|
     url = "https://app.circleci.com/pipelines/#{slug}/#{pipeline_number}/workflows/#{workflow_id}"
     `open #{url}`
   end
-  pane.selection('o') do |data|
+  pane.selection('o', 'Opens up version control review URL') do |data|
     pipeline = data[0]
     url = pipeline["vcs"]["review_url"]
     `open #{url}`

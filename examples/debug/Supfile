@@ -103,6 +103,9 @@ add_pane do |pane|
 
   pane.highlight = false
   pane.title = "STDOUT"
+  pane.description = [
+    "Slowly shows stuff sent to STDOUT"
+  ]
 
   pane.interval = 4
   pane.content do |content|

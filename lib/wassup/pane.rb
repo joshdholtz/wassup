@@ -11,6 +11,7 @@ module Wassup
 		attr_accessor :contents
 
     attr_accessor :title
+    attr_accessor :description
 
     attr_accessor :focused
     attr_accessor :focus_number
@@ -28,6 +29,7 @@ module Wassup
     attr_accessor :last_refreshed
     attr_accessor :content_block
     attr_accessor :selection_blocks
+    attr_accessor :selection_blocks_description
 
     attr_accessor :content_thread
     attr_accessor :show_refresh
@@ -60,7 +62,7 @@ module Wassup
 			end
 		end
 
-    def initialize(height, width, top, left, title: nil, highlight: true, focus_number: nil, interval:, show_refresh:, content_block:, selection_blocks:)
+    def initialize(height, width, top, left, title: nil, description: nil, highlight: true, focus_number: nil, interval:, show_refresh:, content_block:, selection_blocks:, selection_blocks_description:)
       self.win_height = Curses.lines * height	
       self.win_width = Curses.cols * width
       self.win_top = Curses.lines * top
@@ -86,10 +88,12 @@ module Wassup
       self.subwin.refresh
 
       self.title = title
+      self.description = description
 
       self.interval = interval
       self.content_block = content_block
       self.selection_blocks = selection_blocks || {}
+      self.selection_blocks_description = selection_blocks_description || {}
     end
 
     def setup_subwin
@@ -130,6 +134,16 @@ module Wassup
       self.subwin.scrollok(true)
     end
 
+    def close
+      unless self.subwin.nil?
+        self.subwin.clear
+        self.subwin.close
+      end
+
+      self.win.clear
+      self.win.close
+    end
+
     def needs_refresh?
       return false if self.content_block.nil?
       return false if self.interval.nil?
@@ -159,12 +173,20 @@ module Wassup
 			return !self.content_thread.nil?
 		end
 
+    def redraw
+      self.update_box
+      self.update_title
+      self.refresh_content(nil)
+    end
+
     def refresh(force: false)
       if force
         self.last_refreshed = nil
       end
 
-      return if !needs_refresh?
+      if !needs_refresh?
+        return
+      end
 
       thread = self.content_thread
       if !thread.nil?
@@ -213,7 +235,8 @@ module Wassup
     end
 
     def refresh_content(contents)
-			self.contents = contents
+      self.contents = contents unless contents.nil?
+
       self.load_current_view()
       self.last_refreshed = Time.now
 
@@ -276,7 +299,12 @@ module Wassup
       return unless self.should_box
 
       title = self.title || "<No Title>"
-      full_title = "#{self.focus_number} - #{title}"
+      
+      if self.focus_number.nil?
+        full_title = title
+      else 
+        full_title = "#{self.focus_number} - #{title}"
+      end
 
       self.win.setpos(0, 3)
       self.win.addstr(full_title)
@@ -293,7 +321,13 @@ module Wassup
     def update_box
       return unless self.should_box
 
-      self.win.attrset(self.focused ? Curses.color_pair(Wassup::Color::Pair::BORDER_FOCUS) : Curses.color_pair(Wassup::Color::Pair::BORDER))
+      show_focused = self.focused
+
+      if self.focus_number.nil?
+        show_focused = true
+      end
+
+      self.win.attrset(show_focused ? Curses.color_pair(Wassup::Color::Pair::BORDER_FOCUS) : Curses.color_pair(Wassup::Color::Pair::BORDER))
       self.win.box()
       self.win.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
 

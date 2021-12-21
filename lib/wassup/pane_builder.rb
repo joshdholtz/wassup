@@ -9,12 +9,14 @@ module Wassup
     attr_accessor :highlight
 
     attr_accessor :title
+    attr_accessor :description
 
     attr_accessor :show_refresh
 
     attr_accessor :interval
     attr_accessor :content_block
     attr_accessor :selection_blocks
+    attr_accessor :selection_blocks_description
 
     class ContentBuilder
       attr_accessor :contents
@@ -70,13 +72,24 @@ module Wassup
       @interval = 60 * 5 
 
       @selection_blocks = {}
+      @selection_blocks_description = {}
     end
 
     def content(&block)
       self.content_block = block
     end
-    def selection(input=10, &block)
+    def selection(input=10, description=nil, &block)
+      if input.to_s.downcase == "enter"
+        input = 10
+      end
+
+      description_input = input
+      if input.to_s == "10"
+        input = "<Enter>"
+      end
+
       self.selection_blocks[input] = block
+      self.selection_blocks_description[input] = description
     end
   end
 end
