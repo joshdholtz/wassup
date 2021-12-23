@@ -85,11 +85,11 @@ module Wassup
 
       description_input = input
       if input.to_s == "10"
-        input = "<Enter>"
+        description_input = "enter"
       end
 
       self.selection_blocks[input] = block
-      self.selection_blocks_description[input] = description
+      self.selection_blocks_description[description_input] = description
     end
   end
 end

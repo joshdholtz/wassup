@@ -176,7 +176,7 @@ module Wassup
     def redraw
       self.update_box
       self.update_title
-      self.refresh_content(nil)
+      self.load_current_view()
     end
 
     def refresh(force: false)
@@ -235,7 +235,7 @@ module Wassup
     end
 
     def refresh_content(contents)
-      self.contents = contents unless contents.nil?
+      self.contents = contents
 
       self.load_current_view()
       self.last_refreshed = Time.now

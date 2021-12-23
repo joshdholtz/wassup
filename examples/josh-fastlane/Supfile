@@ -20,6 +20,9 @@ add_pane do |pane|
   pane.highlight = false
 
   pane.title = "Stats: fastlane-community"
+  pane.description = [
+    "Highlevel stats from fastlane-community about PR count"
+  ]
 
   pane.interval = 2
   pane.show_refresh = false
@@ -62,6 +65,9 @@ add_pane do |pane|
   pane.highlight = false
 
   pane.title = "Stats: fastlane/fastlane"
+  pane.description = [
+    "Highlevel stats from fastlane/fastlane about PR count"
+  ]
 
   pane.interval = 2
   pane.show_refresh = false
@@ -185,6 +191,9 @@ add_pane do |pane|
   pane.highlight = true
 
   pane.title = "Open PRs - fastlane-community"
+  pane.description = [
+    "Open PRs from all the fastlane-community repos"
+  ]
 
   pane.interval = 60 * 5
   pane.show_refresh = true
@@ -227,7 +236,7 @@ add_pane do |pane|
       end
     end
   end
-  pane.selection do |data|
+  pane.selection('enter', 'Open PR in web browser') do |data|
     url = data["html_url"] 
     `open #{url}`
   end
@@ -246,6 +255,9 @@ add_pane do |pane|
   pane.highlight = true
 
   pane.title = "Open PRs - fastlane/fastlane"
+  pane.description = [
+    "Open PRs from all the fastlane/fastlane repo"
+  ]
 
   pane.interval = 60 * 5
   pane.show_refresh = true
@@ -274,7 +286,7 @@ add_pane do |pane|
       builder.add_row(display, pr)
     end
   end
-  pane.selection do |data|
+  pane.selection('enter', 'Open PR in browser') do |data|
     url = data["html_url"] 
     `open #{url}`
   end
