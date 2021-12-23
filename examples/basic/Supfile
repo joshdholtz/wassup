@@ -75,7 +75,9 @@ add_pane do |pane|
     `open #{url}`
   end
   pane.selection('o', 'Open preview') do |deploy|
-    if deploy['review_id'].nil?
+    if deploy['state'] == 'error'
+      # show alert that isn't here yet
+    elsif deploy['review_id'].nil?
       `open #{deploy['url']}`
     else
       `open #{deploy['deploy_ssl_url']}`

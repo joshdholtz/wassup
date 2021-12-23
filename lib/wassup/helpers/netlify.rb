@@ -37,8 +37,10 @@ module Wassup
           color = "green"
           if state == "building"
             color = "yellow"
-          elsif state == "cancelled"
+          elsif state == "enqueued"
             color = "magenta"
+          elsif state == "cancelled"
+            color = "gray"
           elsif state == "error"
             color = "red"
           end
