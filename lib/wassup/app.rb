@@ -113,6 +113,21 @@ module Wassup
       end
     end
 
+    def row_help
+      {
+        "j" => "moves row highlight down",
+        "k" => "moves row highlight up",
+        "enter" => "perform selection on highlighted row"
+      }
+    end
+
+    def page_help
+      {
+        "h" => "previous page in pane",
+        "l" => "next page in pane"
+      }
+    end
+
     def toggle_help
       if @help_pane.nil?
         if @focused_pane == @hidden_pane
@@ -121,12 +136,13 @@ module Wassup
               "Welcome to Wassup!",
               "",
               "Press any number key to focus a pane",
-              "j - moves row highlight down",
-              "k - moves row highlight up",
-              "<Enter> - perform selection on highlighted row",
+              "",
+              row_help.map { |k,v| "#{k} - #{v}"},
+              "",
+              page_help.map { |k,v| "#{k} - #{v}"},
               "",
               "? - opens help for focused pane"
-            ]
+            ].flatten
 
             items.each do |item|
               content.add_row(item)
@@ -134,12 +150,21 @@ module Wassup
           end
         else
           content_block = Proc.new do |content|
+            hash = {}
+
+            hash = hash.merge(row_help)
+            hash = hash.merge(@focused_pane.selection_blocks_description)
+
+            row_help.map { |k,v| "#{k} - #{v}"}
+
             items = [
               @focused_pane.description,
               "",
-              @focused_pane.selection_blocks_description.map do |k,v|
+              hash.map do |k,v|
                 "#{k} - #{v}" 
-              end
+              end,
+              "",
+              page_help.map { |k,v| "#{k} - #{v}"},
             ].flatten.compact
 
             items.each do |item|
