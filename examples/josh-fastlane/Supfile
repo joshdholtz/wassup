@@ -119,52 +119,16 @@ add_pane do |pane|
 
   pane.interval = 60 * 5
   pane.show_refresh = true
+
   pane.content do |builder|
-    resp = RestClient::Request.execute(
-      method: :get, 
-      url: "https://circleci.com/api/v2/project/github/fastlane/fastlane/pipeline", 
-      headers: { "Circle-Token": ENV["WASSUP_CIRCLE_CI_API_TOKEN"] }
-    )
-    json = JSON.parse(resp)
-    json["items"].select do |item|
-      date = Time.parse(item["updated_at"])
-      days = (Time.now - date).to_i / (24 * 60 * 60)
-      days < 14
-    end.map do |item|
-      id = item["id"]
-      number = item["number"]
-      message = (item["vcs"]["commit"] || {})["subject"]
-      login = item["trigger"]["actor"]["login"]
-
-      resp = RestClient::Request.execute(
-        method: :get, 
-        url: "https://circleci.com/api/v2/pipeline/#{id}/workflow", 
-        headers: { "Circle-Token": ENV["WASSUP_CIRCLE_CI_API_TOKEN"] }
-      )
-      json = JSON.parse(resp)
-      workflow = json["items"].first
-
-      next if workflow.nil?
-
-      status = workflow["status"]
-
-      if status == "failed"
-        status = "[fg=red]#{status}[fg=white]"
-      elsif status == "success"
-        status = "[fg=green]#{status}[fg=white]"
-      else
-        status = "[fg=yellow]#{status}[fg=white]"
-      end
-
-      display = "#{number} (#{status}) by #{login} - #{message}"
-      object = [item, workflow]
-
-      builder.add_row(display, object)
+    workflows = Helpers::CircleCI.workflows(vcs: 'github', org: 'fastlane', repo: 'fastlane', limit_days: 14)
+    workflows.each do |workflow|
+      display = Helpers::CircleCI::Formatter.workflow(workflow)
+      builder.add_row(display, workflow)
     end
   end
-  pane.selection('enter', 'Opens up CirceCI workflow') do |data|
-    workflow = data[1]
 
+  pane.selection('enter', 'Opens up CirceCI workflow') do |workflow|
     slug = workflow["project_slug"]
     pipeline_number = workflow["pipeline_number"]
     workflow_id = workflow["id"]
@@ -172,8 +136,9 @@ add_pane do |pane|
     url = "https://app.circleci.com/pipelines/#{slug}/#{pipeline_number}/workflows/#{workflow_id}"
     `open #{url}`
   end
-  pane.selection('o', 'Opens up version control review URL') do |data|
-    pipeline = data[0]
+
+  pane.selection('o', 'Opens up version control review URL') do |workflow|
+    pipeline = workflow["pipeline"]
     url = pipeline["vcs"]["review_url"]
     `open #{url}`
   end
@@ -200,40 +165,14 @@ add_pane do |pane|
   pane.content do |builder|
     fastlane_community_prs = []
 
-    resp = RestClient::Request.execute(
-      method: :get, 
-      url: "https://api.github.com/orgs/fastlane-community/repos", 
-      user: ENV["WASSUP_GITHUB_USERNAME"],
-      password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"]
-    )
-    json = JSON.parse(resp)
-    json.map do |repo|
-      name = repo["name"]
-      full_name = repo["full_name"]
+    prs = Wassup::Helpers::GitHub.pull_requests(org: 'fastlane-community')
+    prs.each do |pr|
+      fastlane_community_prs << pr
 
-      resp = RestClient::Request.execute(
-        method: :get, 
-        url: "https://api.github.com/repos/#{full_name}/pulls",
-        user: ENV["WASSUP_GITHUB_USERNAME"],
-        password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"]
-      )
-      json = JSON.parse(resp)
-      prs = json.map do |pr|
-        fastlane_community_prs << pr
+      repo_name = pr["base"]["repo"]["name"]
 
-        number = pr["number"]
-        title = pr["title"]
-        created_at = pr["created_at"]
-
-        number_formatted = '%5.5s' % "##{number}"
-
-        date = Time.parse(created_at)
-        days = (Time.now - date).to_i / (24 * 60 * 60)
-        days_formatted = '%3.3s' % days.to_s
-
-        display = "[fg=yellow]#{number_formatted}[fg=cyan] #{days_formatted}d ago[fg=white] #{title}"
-        builder.add_row(display, pr, page: name)
-      end
+      display = Helpers::GitHub::Formatter.pr(pr)
+      builder.add_row(display, pr, page: repo_name)
     end
   end
   pane.selection('enter', 'Open PR in web browser') do |data|
@@ -264,25 +203,11 @@ add_pane do |pane|
   pane.content do |builder|
     fastlane_prs = []
 
-    resp = RestClient::Request.execute(
-      method: :get, 
-      url: "https://api.github.com/repos/fastlane/fastlane/pulls?per_page=100", 
-      user: ENV["WASSUP_GITHUB_USERNAME"],
-      password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"]
-    )
-    json = JSON.parse(resp)
-    json.map do |pr|
+    prs = Wassup::Helpers::GitHub.pull_requests(org: 'fastlane', repo: 'fastlane')
+    prs.each do |pr|
       fastlane_prs << pr
 
-      number = pr["number"]
-      title = pr["title"]
-      created_at = pr["created_at"]
-
-      date = Time.parse(created_at)
-      days = (Time.now - date).to_i / (24 * 60 * 60)
-      days_formatted = '%3.3s' % days.to_s
-
-      display = "[fg=yellow]##{number}[fg=cyan] #{days_formatted}d ago[fg=white] #{title}"
+      display = Helpers::GitHub::Formatter.pr(pr)
       builder.add_row(display, pr)
     end
   end
