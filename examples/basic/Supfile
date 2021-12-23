@@ -1,6 +1,3 @@
-require 'json'
-require 'rest-client'
-
 add_pane do |pane|
   pane.height = 0.5
   pane.width = 0.5
@@ -11,18 +8,77 @@ add_pane do |pane|
   pane.title = "Open PRs - fastlane/fastlane"
 
   pane.interval = 60 * 5
-  pane.content do
-    resp = RestClient.get "https://api.github.com/repos/fastlane/fastlane/pulls"
-    json = JSON.parse(resp)
-    json.map do |pr|
-      display = "##{pr["number"]} #{pr["title"]}"
-      
-      # First element is displayed
-      # Second element is passed to pane.selection
-      [display, pr["html_url"]]   
+  pane.show_refresh = true
+
+  pane.content do |content|
+    prs = Helpers::GitHub.pull_requests(org: 'fastlane', repo: 'fastlane')
+    prs.each do |pr|
+      display = Helpers::GitHub::Formatter.pr(pr)
+      content.add_row(display, pr)
     end
   end
-  pane.selection do |url|
+  pane.selection('enter', 'Open PR in browser') do |pr|
+    `open #{pr['html_url']}`
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.5
+  pane.width = 0.5
+  pane.top = 0
+  pane.left = 0.5
+
+  pane.highlight = true
+  pane.title = "CircleCI - fastlane/fastlane"
+
+  pane.interval = 60 * 5
+  pane.show_refresh = true
+
+  pane.content do |content|
+    workflows = Helpers::CircleCI.workflows(vcs: 'github', org: 'fastlane', repo: 'fastlane', limit_days: 14)
+    workflows.each do |workflow|
+      display = Helpers::CircleCI::Formatter.workflow(workflow)
+      content.add_row(display, workflow)
+    end
+  end
+  pane.selection('enter', 'Open workflow in browser') do |workflow|
+    slug = workflow["project_slug"]
+    pipeline_number = workflow["pipeline_number"]
+    workflow_id = workflow["id"]
+
+    url = "https://app.circleci.com/pipelines/#{slug}/#{pipeline_number}/workflows/#{workflow_id}"
     `open #{url}`
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.5
+  pane.width = 0.5
+  pane.top = 0.5
+  pane.left = 0
+
+  pane.highlight = true
+  pane.title = "Netlify - wassup"
+
+  pane.interval = 60 * 5
+  pane.show_refresh = true
+
+  pane.content do |content|
+    deploys = Helpers::Netlify.deploys(site_id: '91e8af7d-ea1c-4553-afb0-af7539bed063')
+    deploys.each do |deploy|
+      display = Helpers::Netlify::Formatter.deploy(deploy)
+      content.add_row(display, deploy)
+    end
+  end
+  pane.selection('enter', 'Open in Netlify') do |deploy|
+    url = "#{deploy['admin_url']}/deploys/#{deploy['id']}"
+    `open #{url}`
+  end
+  pane.selection('o', 'Open preview') do |deploy|
+    if deploy['review_id'].nil?
+      `open #{deploy['url']}`
+    else
+      `open #{deploy['deploy_ssl_url']}`
+    end
   end
 end

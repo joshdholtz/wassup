@@ -17,6 +17,8 @@ module Wassup
       NORMAL = 20
       HIGHLIGHT = 21
 
+      GRAY = 22
+
       BORDER = 20
       BORDER_FOCUS = 7
 
@@ -44,6 +46,7 @@ module Wassup
       Curses.init_pair(Pair::RED, Curses::COLOR_RED, 0)
       Curses.init_pair(Pair::WHITE, Pair::WHITE, 0)
       Curses.init_pair(Pair::YELLOW, Curses::COLOR_YELLOW, 0)
+      Curses.init_pair(Pair::GRAY, Curses::COLOR_WHITE, 0)
     end
 
     def initialize(string_name)
@@ -64,6 +67,8 @@ module Wassup
                  Pair::WHITE
                when "yellow"
                  Pair::YELLOW
+               when "gray"
+                 Pair::GRAY
                else
                  if string_name.to_i.to_s == string_name
                    string_name.to_i
