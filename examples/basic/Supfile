@@ -1,5 +1,5 @@
 add_pane do |pane|
-  pane.height = 0.5
+  pane.height = 0.25
   pane.width = 0.5
   pane.top = 0
   pane.left = 0
@@ -15,6 +15,58 @@ add_pane do |pane|
     prs.each do |pr|
       display = Helpers::GitHub::Formatter.pr(pr)
       content.add_row(display, pr)
+    end
+  end
+  pane.selection('enter', 'Open PR in browser') do |pr|
+    `open #{pr['html_url']}`
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.25
+  pane.width = 0.5
+  pane.top = 0.25
+  pane.left = 0
+
+  pane.highlight = true
+  pane.title = "Open PRs - fastlane-community"
+
+  pane.interval = 60 * 5
+  pane.show_refresh = true
+
+  pane.content do |content|
+    # Uses GitHub's /search/issues API
+    # Docs - https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests
+    issues = Helpers::GitHub.issues(org: 'fastlane-community', q: 'is:pr is:open')
+    issues.each do |issue|
+      display = Helpers::GitHub::Formatter.pr(issue, show_repo: true)
+      content.add_row(display, issue)
+    end
+  end
+  pane.selection('enter', 'Open PR in browser') do |pr|
+    `open #{pr['html_url']}`
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.25
+  pane.width = 0.5
+  pane.top = 0.5
+  pane.left = 0
+
+  pane.highlight = true
+  pane.title = "High Interaction Issues - fastlane/fastlane"
+
+  pane.interval = 60 * 5
+  pane.show_refresh = true
+
+  pane.content do |content|
+    # Uses GitHub's /search/issues API
+    # Doc - https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests
+    issues = Helpers::GitHub.issues(org: 'fastlane', repo: 'fastlane', q: 'is:issue is:open interactions:>10')
+    issues.each do |issue|
+      display = Helpers::GitHub::Formatter.issue(issue, show_interactions: true)
+      content.add_row(display, issue)
     end
   end
   pane.selection('enter', 'Open PR in browser') do |pr|
@@ -52,9 +104,9 @@ add_pane do |pane|
 end
 
 add_pane do |pane|
-  pane.height = 0.5
+  pane.height = 0.25
   pane.width = 0.5
-  pane.top = 0.5
+  pane.top = 0.75
   pane.left = 0
 
   pane.highlight = true
@@ -82,5 +134,38 @@ add_pane do |pane|
     else
       `open #{deploy['deploy_ssl_url']}`
     end
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.5
+  pane.width = 0.5
+  pane.top = 0.5
+  pane.left = 0.5
+
+  pane.highlight = true
+  pane.title = "Shortcut - Stories"
+
+  pane.interval = 60 * 5
+  pane.show_refresh = true
+
+  pane.content do |content|
+    # Owned stories
+    stories = Helpers::Shortcut.search_stories(query: "owner:joshholtz")
+    stories.each do |story|
+      display = Helpers::Shortcut::Formatter.story(story)
+      content.add_row(display, story, page: "Owned Stories")
+    end
+
+    # Ready for review stories
+    stories = Helpers::Shortcut.search_stories(query: "state:\"Ready For Review\" team:\"The\"")
+    stories.each do |story|
+      display = Helpers::Shortcut::Formatter.story(story)
+      content.add_row(display, story, page: "Ready For Review")
+    end
+  end
+  pane.selection('enter', 'Open in Shortcut') do |story|
+    url = story['app_url']
+    `open #{url}`
   end
 end
