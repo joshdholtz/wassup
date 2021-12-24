@@ -4,6 +4,37 @@ module Wassup
       require 'json'
       require 'rest-client'
 
+      # https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests
+      def self.issues(org:, repo:nil, q: nil)
+        q_parts = []
+
+        if repo.nil?
+          q_parts << "org:#{org}"
+        else
+          q_parts << "repo:#{org}/#{repo}"
+        end
+
+        if q
+          q_parts << q
+        end
+
+        q = q_parts.join(' ')
+
+        items = []
+
+        resp = RestClient::Request.execute(
+          method: :get, 
+          url: "https://api.github.com/search/issues?q=#{q}", 
+          user: ENV["WASSUP_GITHUB_USERNAME"],
+          password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"],
+          headers: { "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" },
+        )
+        partial_items = JSON.parse(resp)["items"]
+        items += partial_items
+
+        return items
+      end
+
       def self.repos(org:)
         resp = RestClient::Request.execute(
           method: :get, 
@@ -44,16 +75,34 @@ module Wassup
   module Helpers
     module GitHub
       module Formatter
-        def self.pr(pr)
+        def self.issue(issue, show_repo: false, show_interactions: false)
+          self.pr(issue, show_repo: show_repo, show_interactions: show_interactions)
+        end
+
+        def self.pr(pr, show_repo: false, show_interactions: false)
           number = pr["number"]
           title = pr["title"]
           created_at = pr["created_at"]
+
+          repo_name = ""
+          if show_repo
+            repo_url_parts = pr["repository_url"].split("/")
+            repo_name = "[fg=gray]#{repo_url_parts.last} "
+          end
+
+          interactions = ""
+          if show_interactions
+            interaction_count = pr["comments"] + pr["reactions"]["total_count"]
+            interactions = "[fg=red]#{interaction_count} "
+          end
+
+          number_formatted = '%-7.7s' % "##{number}"
 
           date = Time.parse(created_at)
           days = (Time.now - date).to_i / (24 * 60 * 60)
           days_formatted = '%3.3s' % days.to_s
 
-          display = "[fg=yellow]##{number}[fg=cyan] #{days_formatted}d ago[fg=white] #{title}"
+          display = "[fg=yellow]#{number_formatted}[fg=cyan] #{days_formatted}d ago #{interactions}#{repo_name}[fg=white]#{title}"
 
           return display
         end

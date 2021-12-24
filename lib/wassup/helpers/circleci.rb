@@ -53,16 +53,19 @@ module Wassup
           login = pipeline["trigger"]["actor"]["login"]
 
           status = workflow["status"]
+          status_formatted = '%-8.8s' % status
+
+          number_formatted = '%-7.7s' % "##{number}"
 
           if status == "failed"
-            status = "[fg=red]#{status}[fg=white]"
+            status_formatted = "[fg=red]#{status_formatted}[fg=white]"
           elsif status == "success"
-            status = "[fg=green]#{status}[fg=white]"
+            status_formatted = "[fg=green]#{status_formatted}[fg=white]"
           else
-            status = "[fg=yellow]#{status}[fg=white]"
+            status_formatted = "[fg=yellow]#{status_formatted}[fg=white]"
           end
 
-          display = "#{number} (#{status}) by #{login} - #{message}"
+          display = "[fg=yellow]#{number_formatted} [fg=while]#{status_formatted} [fg=white]#{login} [fg=gray]#{message}"
           
           return display
         end
