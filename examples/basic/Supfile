@@ -69,7 +69,31 @@ add_pane do |pane|
       content.add_row(display, issue)
     end
   end
-  pane.selection('enter', 'Open PR in browser') do |pr|
+  pane.selection('enter', 'Open issue in browser') do |pr|
+    `open #{pr['html_url']}`
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.25
+  pane.width = 0.5
+  pane.top = 0
+  pane.left = 0.5
+
+  pane.highlight = true
+  pane.title = "Releases - fastlane/fastlane"
+
+  pane.interval = 60 * 5
+  pane.show_refresh = true
+
+  pane.content do |content|
+    releases = Helpers::GitHub.releases(org: 'fastlane', repo: 'fastlane')
+    releases.each do |release|
+      display = Helpers::GitHub::Formatter.release(release)
+      content.add_row(display, release)
+    end
+  end
+  pane.selection('enter', 'Open release in browser') do |pr|
     `open #{pr['html_url']}`
   end
 end
@@ -77,7 +101,7 @@ end
 add_pane do |pane|
   pane.height = 0.5
   pane.width = 0.5
-  pane.top = 0
+  pane.top = 0.25
   pane.left = 0.5
 
   pane.highlight = true
@@ -138,9 +162,9 @@ add_pane do |pane|
 end
 
 add_pane do |pane|
-  pane.height = 0.5
+  pane.height = 0.25
   pane.width = 0.5
-  pane.top = 0.5
+  pane.top = 0.75
   pane.left = 0.5
 
   pane.highlight = true
