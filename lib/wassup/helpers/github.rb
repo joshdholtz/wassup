@@ -67,6 +67,17 @@ module Wassup
           JSON.parse(resp)
         end.flatten(1)
       end
+
+      def self.releases(org:, repo:)
+        resp = RestClient::Request.execute(
+          method: :get, 
+          url: "https://api.github.com/repos/#{org}/#{repo}/releases", 
+          user: ENV["WASSUP_GITHUB_USERNAME"],
+          password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"]
+        )
+
+        return JSON.parse(resp)
+      end
     end
   end
 end
@@ -105,6 +116,20 @@ module Wassup
           display = "[fg=yellow]#{number_formatted}[fg=cyan] #{days_formatted}d ago #{interactions}#{repo_name}[fg=white]#{title}"
 
           return display
+        end
+
+        def self.release(release)
+          tag_name = release["tag_name"]
+          name = release["name"]
+          published_at = release["published_at"]
+
+          date = Time.parse(published_at)
+          days = (Time.now - date).to_i / (24 * 60 * 60)
+          days_formatted = '%3.3s' % days.to_s
+
+          display = "[fg=yellow]#{tag_name} [fg=cyan]#{days_formatted} ago [fg=gray]#{name}"
+
+          return display 
         end
       end
     end
