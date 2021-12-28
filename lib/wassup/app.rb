@@ -41,7 +41,7 @@ module Wassup
         builder = Wassup::PaneBuilder::ContentBuilder.new(pane.contents)
         pane.content_block.call(builder)
 
-        builder.contents.each_with_index do |content|
+        builder.contents.each_with_index do |content, idx|
           puts "#########################"
           puts "# #{content.title || (idx == 0 ? "Default" : "<No Title>")}"
           puts "#########################"
