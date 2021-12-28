@@ -2,10 +2,15 @@
 
 require 'wassup'
 
+debug = ARGV.delete("--debug")
 path = ARGV[0] || 'Supfile'
 
 unless File.exists?(path)
   raise "Missing file: #{path}"
 end
 
-Wassup::App.start(path: path)
+if debug
+  Wassup::App.debug(path: path)
+else
+  Wassup::App.start(path: path)
+end

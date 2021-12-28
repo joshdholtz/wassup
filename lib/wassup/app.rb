@@ -20,6 +20,44 @@ module Wassup
       app = App.new(path: path)
     end
 
+    def self.debug(path:)
+      app = App.new(path: path, debug: true)
+
+      app.panes.each do |k, pane|
+        puts "#{k} - #{pane.title}"
+      end
+
+      puts ""
+      puts "Choose a pane to run:"
+
+      selection = $stdin.gets.chomp.to_s
+
+      pane = app.panes[selection]
+      if pane.nil?
+        puts "That was not a valid option"
+      else
+        puts "Going to run: \"#{pane.title}\""
+
+        builder = Wassup::PaneBuilder::ContentBuilder.new(pane.contents)
+        pane.content_block.call(builder)
+
+        builder.contents.each_with_index do |content|
+          puts "#########################"
+          puts "# #{content.title || (idx == 0 ? "Default" : "<No Title>")}"
+          puts "#########################"
+
+          content.data.each do |data|
+            puts data.display
+              .split(/\[.*?\]/).join('') # Removes colors but make this an option probably
+          end
+
+          puts ""
+          puts ""
+          puts ""
+        end
+      end
+    end
+
     def add_pane
       pane_builder = Wassup::PaneBuilder.new
       yield(pane_builder)
@@ -38,18 +76,40 @@ module Wassup
         show_refresh: pane_builder.show_refresh,
         content_block: pane_builder.content_block,
         selection_blocks: pane_builder.selection_blocks,
-        selection_blocks_description: pane_builder.selection_blocks_description
+        selection_blocks_description: pane_builder.selection_blocks_description,
+        debug: debug
       )
       pane.focus_handler = @focus_handler
       @panes[number.to_s] = pane
     end
 
-    def initialize(path:)
+    attr_accessor :panes
+    attr_accessor :debug
+
+    def initialize(path:, debug: false)
       @hidden_pane = nil
       @help_pane = nil
       @focused_pane = nil
       @panes = {}
+      @debug = debug
 
+      if debug
+        self.start_debug(path)
+      else
+        self.start_curses(path)
+      end
+    end
+
+    def start_debug(path)
+      begin
+        eval(File.new(path).read)
+      rescue => err
+        puts err
+        puts err.backtrace
+      end
+    end
+
+    def start_curses(path)
       @redraw_panes = false
 
       # TODO: this could maybe get replaced with selection_blocks now
@@ -58,9 +118,6 @@ module Wassup
 
         if input == "q"
           exit
-        elsif is_help_open
-          toggle_help
-          next true
         elsif input == "?"
           toggle_help
           next true
@@ -164,6 +221,11 @@ module Wassup
 
             row_help.map { |k,v| "#{k} - #{v}"}
 
+            copy_error = @focused_pane.caught_error.nil? ? [] : [
+              "c - copy stacktrace to clipboard",
+              ""
+            ]
+
             items = [
               @focused_pane.description,
               "",
@@ -171,6 +233,7 @@ module Wassup
                 "#{k} - #{v}" 
               end,
               "",
+              copy_error,
               page_help.map { |k,v| "#{k} - #{v}"},
             ].flatten.compact
 

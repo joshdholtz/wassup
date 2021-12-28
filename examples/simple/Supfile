@@ -1,0 +1,17 @@
+add_pane do |pane|
+  pane.height = 0.25
+  pane.width = 0.25
+  pane.top = 0
+  pane.left = 0
+
+  pane.highlight = false
+  pane.title = "The Title"
+
+  pane.interval = 1
+  pane.content do |content|
+    date = `date`
+    content.add_row(date)
+    content.add_row(date, page: "page 2")
+  end
+end
+

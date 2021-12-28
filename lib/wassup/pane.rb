@@ -31,6 +31,8 @@ module Wassup
     attr_accessor :selection_blocks
     attr_accessor :selection_blocks_description
 
+    attr_accessor :caught_error
+
     attr_accessor :content_thread
     attr_accessor :show_refresh
 
@@ -62,14 +64,17 @@ module Wassup
 			end
 		end
 
-    def initialize(height, width, top, left, title: nil, description: nil, highlight: true, focus_number: nil, interval:, show_refresh:, content_block:, selection_blocks:, selection_blocks_description:)
-      self.win_height = Curses.lines * height	
-      self.win_width = Curses.cols * width
-      self.win_top = Curses.lines * top
-      self.win_left = Curses.cols * left
+    def initialize(height, width, top, left, title: nil, description: nil, highlight: true, focus_number: nil, interval:, show_refresh:, content_block:, selection_blocks:, selection_blocks_description:, debug: false)
 
-      self.win = Curses::Window.new(self.win_height, self.win_width, self.win_top, self.win_left)
-      self.setup_subwin()
+      if !debug
+        self.win_height = Curses.lines * height	
+        self.win_width = Curses.cols * width
+        self.win_top = Curses.lines * top
+        self.win_left = Curses.cols * left
+
+        self.win = Curses::Window.new(self.win_height, self.win_width, self.win_top, self.win_left)
+        self.setup_subwin()
+      end
 
       self.focused = false
       self.focus_number = focus_number
@@ -84,8 +89,10 @@ module Wassup
      
       self.selected_view_index = 0
 
-      self.win.refresh
-      self.subwin.refresh
+      if !debug
+        self.win.refresh
+        self.subwin.refresh
+      end
 
       self.title = title
       self.description = description
@@ -198,15 +205,27 @@ module Wassup
         elsif thread.status == false
           rtn = thread.value
           if rtn.is_a?(Ope)
-						content = Wassup::Pane::Content.new
-
+            self.caught_error = rtn.error
+						content = Wassup::Pane::Content.new("Overview")
 						content.add_row("[fg=red]Error during refersh[fg=white]")
 						content.add_row("[fg=red]at #{Time.now}[fg=while]")
 						content.add_row("")
 						content.add_row("[fg=yellow]Will try again next interval[fg=white]")
 
-            self.refresh_content([content])
+						content_directions = Wassup::Pane::Content.new("Directions")
+            content_directions.add_row("1. Press 'c' to copy the stacktrace")
+            content_directions.add_row("2. Debug pane content block with:")
+            content_directions.add_row("    $: wassup --debug")
+            content_directions.add_row("3. Stacktrace viewable in next page")
+
+						content_stacktrace = Wassup::Pane::Content.new("Stacktrace")
+            rtn.error.backtrace.each do |line|
+						  content_stacktrace.add_row(line)
+            end
+
+            self.refresh_content([content, content_directions, content_stacktrace])
           elsif rtn.is_a?(Wassup::PaneBuilder::ContentBuilder)
+            self.caught_error = nil
             self.refresh_content(rtn.contents)
           end
 
@@ -255,6 +274,13 @@ module Wassup
       @title = title
       self.update_box()
       self.update_title()
+    end
+
+    def highlight
+      if self.caught_error
+        return true
+      end 
+      return @highlight
     end
 
     attr_accessor :refresh_char_count
@@ -535,6 +561,15 @@ module Wassup
         self.scroll_right
       elsif input == "r"
         self.refresh(force: true)
+      elsif input == "c"
+        if !self.caught_error.nil?
+          text = self.caught_error.backtrace.join("\n")
+          if RUBY_PLATFORM.downcase =~ /win32/
+            IO.popen('clip', 'w') { |pipe| pipe.puts text }
+          else
+            IO.popen('pbcopy', 'w') { |pipe| pipe.puts text }
+          end
+        end
       else
         selection_block = self.selection_blocks[input]
         if !selection_block.nil? && !self.highlighted_line.nil?

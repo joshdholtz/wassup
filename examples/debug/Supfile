@@ -55,6 +55,21 @@ end
 
 add_pane do |pane|
   pane.height = 0.25
+  pane.width = 0.3
+  pane.top = 0.75
+  pane.left = 0.0
+
+  pane.highlight = false
+  pane.title = "Always error"
+
+  pane.interval = 10
+  pane.content do |content|
+    raise "An error occured! Oh no!"
+  end
+end
+
+add_pane do |pane|
+  pane.height = 0.25
   pane.width = 0.35
   pane.top = 0.25
   pane.left = 0.25
