@@ -54,12 +54,19 @@ module Wassup
 
       # TODO: this could maybe get replaced with selection_blocks now
       @focus_handler = Proc.new do |input|
+        is_help_open = !@help_pane.nil?
+
         if input == "q"
           exit
+        elsif is_help_open
+          toggle_help
+          next true
         elsif input == "?"
           toggle_help
           next true
         end
+
+        next true if is_help_open
 
         if (pane = @panes[input.to_s])
           @focused_pane.focused = false
