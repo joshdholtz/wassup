@@ -127,7 +127,7 @@ module Wassup
           days = (Time.now - date).to_i / (24 * 60 * 60)
           days_formatted = '%3.3s' % days.to_s
 
-          display = "[fg=yellow]#{tag_name} [fg=cyan]#{days_formatted} ago [fg=gray]#{name}"
+          display = "[fg=yellow]#{tag_name} [fg=cyan]#{days_formatted}d ago [fg=gray]#{name}"
 
           return display 
         end
