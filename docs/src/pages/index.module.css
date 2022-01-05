@@ -8,6 +8,8 @@
   text-align: center;
   position: relative;
   overflow: hidden;
+
+  background-color: #2b3137;
 }
 
 .heroTitle {
@@ -27,6 +29,18 @@
   .heroBanner {
     padding: 2rem;
   }
+}
+
+.moreInfo {
+  background-color: rgb(32, 35, 42);
+  color: #F6F6F7;
+  text-align: center;
+  padding: 20px 0px;
+  font-size: 30px;
+}
+
+.moreInfo strong {
+  color: #458588;
 }
 
 .buttons {

@@ -24,6 +24,15 @@ function HomepageHeader() {
   );
 }
 
+function HomepageMoreInfo() {
+  const {siteConfig} = useDocusaurusContext();
+  return (
+    <div className={styles.moreInfo}>
+      Want to <strong>contribute</strong>? You <strong>can</strong>!
+    </div>
+  );
+}
+
 export default function Home(): JSX.Element {
   const {siteConfig} = useDocusaurusContext();
   return (
@@ -31,6 +40,7 @@ export default function Home(): JSX.Element {
       title={`Hello from ${siteConfig.title}`}
       description="Description will go into a meta tag in <head />">
       <HomepageHeader />
+      <HomepageMoreInfo />
       <main>
         <HomepageFeatures />
       </main>
