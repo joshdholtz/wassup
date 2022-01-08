@@ -18,6 +18,8 @@ module Wassup
     attr_accessor :selection_blocks
     attr_accessor :selection_blocks_description
 
+    attr_accessor :type
+
     class ContentBuilder
       attr_accessor :contents
 
@@ -62,7 +64,7 @@ module Wassup
       end
     end
 
-    def initialize()
+    def initialize
       @height = 1
       @weight = 1
       @top = 0
@@ -73,6 +75,10 @@ module Wassup
 
       @selection_blocks = {}
       @selection_blocks_description = {}
+    end
+
+    def type=(type)
+      type.configure(self)
     end
 
     def content(&block)

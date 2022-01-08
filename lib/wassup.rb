@@ -9,6 +9,11 @@ require "wassup/helpers/github"
 require "wassup/helpers/netlify"
 require "wassup/helpers/shortcut"
 
+require "wassup/panes/circleci"
+require "wassup/panes/github"
+require "wassup/panes/netlify"
+require "wassup/panes/shortcut"
+
 module Wassup
   class Error < StandardError; end
   # Your code goes here...

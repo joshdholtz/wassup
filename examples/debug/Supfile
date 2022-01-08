@@ -64,7 +64,7 @@ add_pane do |pane|
 
   pane.interval = 10
   pane.content do |content|
-    raise "An error occured! Oh no!"
+    raise "No API Key Found"
   end
 end
 
