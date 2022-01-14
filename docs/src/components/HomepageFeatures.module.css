@@ -3,6 +3,19 @@
   align-items: center;
   padding: 2rem 0;
   width: 100%;
+
+  background-color: #17191a;
+  color: #F6F6F7;
+}
+
+.features code {
+  background-color: #424447;
+  border: 0.1rem solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--ifm-code-border-radius);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: var(--ifm-code-font-size);
+  padding: var(--ifm-code-padding-vertical) var(--ifm-code-padding-horizontal);
+  vertical-align: middle;
 }
 
 .featureSvg {
