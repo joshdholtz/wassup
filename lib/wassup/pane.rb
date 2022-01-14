@@ -207,10 +207,9 @@ module Wassup
           if rtn.is_a?(Ope)
             self.caught_error = rtn.error
 						content = Wassup::Pane::Content.new("Overview")
-						content.add_row("[fg=red]Error during refersh[fg=white]")
-						content.add_row("[fg=red]at #{Time.now}[fg=while]")
+            content.add_row("[fg=red]#{rtn.error.message}[fg=while]")
 						content.add_row("")
-						content.add_row("[fg=yellow]Will try again next interval[fg=white]")
+						content.add_row("[fg=gray]Error at #{Time.now}[fg=while]")
 
 						content_directions = Wassup::Pane::Content.new("Directions")
             content_directions.add_row("1. Press 'c' to copy the stacktrace")

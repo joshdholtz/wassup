@@ -10,16 +10,7 @@ add_pane do |pane|
   pane.interval = 60 * 5
   pane.show_refresh = true
 
-  pane.content do |content|
-    prs = Helpers::GitHub.pull_requests(org: 'fastlane', repo: 'fastlane')
-    prs.each do |pr|
-      display = Helpers::GitHub::Formatter.pr(pr)
-      content.add_row(display, pr)
-    end
-  end
-  pane.selection('enter', 'Open PR in browser') do |pr|
-    `open #{pr['html_url']}`
-  end
+  pane.type = Panes::GitHub::PullRequests.new(org: 'fastlane', repo: 'fastlane')
 end
 
 add_pane do |pane|
@@ -34,18 +25,7 @@ add_pane do |pane|
   pane.interval = 60 * 5
   pane.show_refresh = true
 
-  pane.content do |content|
-    # Uses GitHub's /search/issues API
-    # Docs - https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests
-    issues = Helpers::GitHub.issues(org: 'fastlane-community', q: 'is:pr is:open')
-    issues.each do |issue|
-      display = Helpers::GitHub::Formatter.pr(issue, show_repo: true)
-      content.add_row(display, issue)
-    end
-  end
-  pane.selection('enter', 'Open PR in browser') do |pr|
-    `open #{pr['html_url']}`
-  end
+  pane.type = Panes::GitHub::Search.new(org: 'fastlane-community', query: 'is:pr is:open')
 end
 
 add_pane do |pane|
@@ -60,18 +40,12 @@ add_pane do |pane|
   pane.interval = 60 * 5
   pane.show_refresh = true
 
-  pane.content do |content|
-    # Uses GitHub's /search/issues API
-    # Doc - https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests
-    issues = Helpers::GitHub.issues(org: 'fastlane', repo: 'fastlane', q: 'is:issue is:open interactions:>10')
-    issues.each do |issue|
-      display = Helpers::GitHub::Formatter.issue(issue, show_interactions: true)
-      content.add_row(display, issue)
-    end
-  end
-  pane.selection('enter', 'Open issue in browser') do |pr|
-    `open #{pr['html_url']}`
-  end
+  pane.type = Panes::GitHub::Search.new(
+    org: 'fastlane',
+    repo: 'fastlane',
+    query: 'is:issue is:open interactions:>10',
+    show_interactions: true
+  )
 end
 
 add_pane do |pane|
@@ -86,16 +60,7 @@ add_pane do |pane|
   pane.interval = 60 * 5
   pane.show_refresh = true
 
-  pane.content do |content|
-    releases = Helpers::GitHub.releases(org: 'fastlane', repo: 'fastlane')
-    releases.each do |release|
-      display = Helpers::GitHub::Formatter.release(release)
-      content.add_row(display, release)
-    end
-  end
-  pane.selection('enter', 'Open release in browser') do |pr|
-    `open #{pr['html_url']}`
-  end
+  pane.type = Panes::GitHub::Releases.new(org: 'fastlane', repo: 'fastlane')
 end
 
 add_pane do |pane|
@@ -110,21 +75,7 @@ add_pane do |pane|
   pane.interval = 60 * 5
   pane.show_refresh = true
 
-  pane.content do |content|
-    workflows = Helpers::CircleCI.workflows(vcs: 'github', org: 'fastlane', repo: 'fastlane', limit_days: 14)
-    workflows.each do |workflow|
-      display = Helpers::CircleCI::Formatter.workflow(workflow)
-      content.add_row(display, workflow)
-    end
-  end
-  pane.selection('enter', 'Open workflow in browser') do |workflow|
-    slug = workflow["project_slug"]
-    pipeline_number = workflow["pipeline_number"]
-    workflow_id = workflow["id"]
-
-    url = "https://app.circleci.com/pipelines/#{slug}/#{pipeline_number}/workflows/#{workflow_id}"
-    `open #{url}`
-  end
+  pane.type = Panes::CircleCI::Workflows.new(vcs: 'github', org: 'fastlane', repo: 'fastlane')
 end
 
 add_pane do |pane|
@@ -139,26 +90,7 @@ add_pane do |pane|
   pane.interval = 60 * 5
   pane.show_refresh = true
 
-  pane.content do |content|
-    deploys = Helpers::Netlify.deploys(site_id: '91e8af7d-ea1c-4553-afb0-af7539bed063')
-    deploys.each do |deploy|
-      display = Helpers::Netlify::Formatter.deploy(deploy)
-      content.add_row(display, deploy)
-    end
-  end
-  pane.selection('enter', 'Open in Netlify') do |deploy|
-    url = "#{deploy['admin_url']}/deploys/#{deploy['id']}"
-    `open #{url}`
-  end
-  pane.selection('o', 'Open preview') do |deploy|
-    if deploy['state'] == 'error'
-      # show alert that isn't here yet
-    elsif deploy['review_id'].nil?
-      `open #{deploy['url']}`
-    else
-      `open #{deploy['deploy_ssl_url']}`
-    end
-  end
+  pane.type = Panes::Netlify::Deploys.new(site_id: '91e8af7d-ea1c-4553-afb0-af7539bed063')
 end
 
 add_pane do |pane|
@@ -173,23 +105,8 @@ add_pane do |pane|
   pane.interval = 60 * 5
   pane.show_refresh = true
 
-  pane.content do |content|
-    # Owned stories
-    stories = Helpers::Shortcut.search_stories(query: "owner:joshholtz")
-    stories.each do |story|
-      display = Helpers::Shortcut::Formatter.story(story)
-      content.add_row(display, story, page: "Owned Stories")
-    end
-
-    # Ready for review stories
-    stories = Helpers::Shortcut.search_stories(query: "state:\"Ready For Review\" team:\"The\"")
-    stories.each do |story|
-      display = Helpers::Shortcut::Formatter.story(story)
-      content.add_row(display, story, page: "Ready For Review")
-    end
-  end
-  pane.selection('enter', 'Open in Shortcut') do |story|
-    url = story['app_url']
-    `open #{url}`
-  end
+  pane.type = Panes::Shortcut::Stories.new(query_pages: {
+    "Owned Stories": "owner:joshholtz",
+    "Ready For Review": "state:\"Ready For Review\" team:\"The\""
+  })
 end
