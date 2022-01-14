@@ -55,7 +55,7 @@ const config = {
             position: 'left',
             label: 'Docs',
           },
-          {to: '/showcase', label: 'Showcase', position: 'left'},
+          {to: 'showcase', label: 'Showcase', position: 'left'},
           {to: '/blog', label: 'Blog', position: 'left'},
           {
             href: 'https://github.com/joshdholtz/wassup',
