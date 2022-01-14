@@ -11,12 +11,20 @@ function HomepageHeader() {
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
-        <img className={styles.heroLogo} src="/img/wassup-long.png" alt="Wassup - The scriptable terminal dashboard"/> 
+        <div className={styles.calloutAndLogo}>
+          <div className={styles.callout}>
+            <h1 className={styles.title}>Wassup</h1>
+            <h2 className={styles.callout}>
+              Easily configure and script <br/> a personal terminal dashboard
+            </h2>
+          </div>
+          <img className={styles.heroLogo} src="/img/wassup.png" alt="Wassup logo"/> 
+        </div>
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
             to="/docs/intro">
-            Wassup Tutorial - 5min ⏱️
+            Getting Started - 5min ⏱️
           </Link>
         </div>
       </div>
@@ -28,7 +36,7 @@ function HomepageMoreInfo() {
   const {siteConfig} = useDocusaurusContext();
   return (
     <div className={styles.moreInfo}>
-      Want to <strong>contribute</strong>? You <strong>can</strong>!
+      Script <strong>your own panes</strong> or use Wassup's <strong>built-in panes</strong>!
     </div>
   );
 }

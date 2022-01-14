@@ -14,8 +14,8 @@ const FeatureList: FeatureItem[] = [
     image: '/img/demo-supfile.png',
     description: (
       <>
-        Wassup was designed to be easy to use but with maximum flexibilty. Configure
-        size, position, content, and selection of the panes in the <code>Supfile</code>.
+        Wassup was designed to be easy to setup but give maximum flexibilty. Configure
+        size, position, content, and item selection of the panes in the <code>Supfile</code>.
       </>
     ),
   },
@@ -24,7 +24,7 @@ const FeatureList: FeatureItem[] = [
     image: '/img/wassup-screenshot.png',
     description: (
       <>
-        Run `wassup` in the same directory as your <code>Supfile</code> to show the dashboard. Press the number
+        Run <code>wassup</code> in the same directory as your <code>Supfile</code> to show the dashboard. Press the number
         keys to interact with a specific pane. Highlight rows with <code>j</code> and <code>k</code> and press <code>Enter</code> to select.
       </>
     ),
