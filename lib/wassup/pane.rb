@@ -13,6 +13,8 @@ module Wassup
     attr_accessor :title
     attr_accessor :description
 
+    attr_accessor :alert_level
+
     attr_accessor :focused
     attr_accessor :focus_number
 
@@ -53,9 +55,11 @@ module Wassup
 
 			attr_accessor :title
 			attr_accessor :data
+      attr_accessor :alert_level
 
 			def initialize(title = nil)
 				@title = title
+        @alert_level = nil
 				@data = []	
 			end
 
@@ -64,7 +68,7 @@ module Wassup
 			end
 		end
 
-    def initialize(height, width, top, left, title: nil, description: nil, highlight: true, focus_number: nil, interval:, show_refresh:, content_block:, selection_blocks:, selection_blocks_description:, debug: false)
+    def initialize(height, width, top, left, title: nil, description: nil, alert_level: nil, highlight: true, focus_number: nil, interval:, show_refresh:, content_block:, selection_blocks:, selection_blocks_description:, debug: false)
 
       if !debug
         self.win_height = Curses.lines * height	
@@ -96,6 +100,8 @@ module Wassup
 
       self.title = title
       self.description = description
+
+      self.alert_level = alert_level
 
       self.interval = interval
       self.content_block = content_block
@@ -330,9 +336,43 @@ module Wassup
       else 
         full_title = "#{self.focus_number} - #{title}"
       end
+      full_title += " "
 
       self.win.setpos(0, 3)
       self.win.addstr(full_title)
+
+      self.win.setpos(0, 3 + full_title.size)
+      alert = ""
+      alert_count = 0
+      if self.contents
+        alert_count = self.contents.map { |c| c.data.size }.inject(0, :+)
+      end
+      case self.alert_level
+      when AlertLevel::HIGH
+			  self.win.attrset(Curses.color_pair(Wassup::Color::Pair::RED))
+        if alert_count == 1
+          alert += "(#{alert_count} HIGH ALERT)"
+        elsif alert_count > 0
+          alert += "(#{alert_count} HIGH ALERTS)"
+        end
+      when AlertLevel::MEDIUM
+			  self.win.attrset(Curses.color_pair(Wassup::Color::Pair::YELLOW))
+        if alert_count == 1
+          alert += "(#{alert_count} MEDIUM ALERT)"
+        elsif alert_count > 0
+          alert += "(#{alert_count} MEDIUM ALERTS)"
+        end
+      when AlertLevel::LOW
+			  self.win.attrset(Curses.color_pair(Wassup::Color::Pair::CYAN))
+        if alert_count == 1
+          alert += "(#{alert_count} LOW ALERT)"
+        elsif alert_count > 0
+          alert += "(#{alert_count} LOW ALERTS)"
+        end
+      end
+      self.win.addstr(alert)
+			self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
+
       self.win.refresh
     end
 

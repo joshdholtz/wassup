@@ -86,11 +86,11 @@ module Wassup
   module Helpers
     module GitHub
       module Formatter
-        def self.issue(issue, show_repo: false, show_interactions: false)
-          self.pr(issue, show_repo: show_repo, show_interactions: show_interactions)
+        def self.issue(issue, show_repo: false, show_username: false, show_interactions: false)
+          self.pr(issue, show_repo: show_repo, show_username: show_username, show_interactions: show_interactions)
         end
 
-        def self.pr(pr, show_repo: false, show_interactions: false)
+        def self.pr(pr, show_repo: false, show_username: false, show_interactions: false)
           number = pr["number"]
           title = pr["title"]
           created_at = pr["created_at"]
@@ -99,6 +99,11 @@ module Wassup
           if show_repo
             repo_url_parts = pr["repository_url"].split("/")
             repo_name = "[fg=gray]#{repo_url_parts.last} "
+          end
+
+          username = ""
+          if show_username
+            username = "[fg=magenta]#{pr["user"]["login"]} "
           end
 
           interactions = ""
@@ -113,7 +118,7 @@ module Wassup
           days = (Time.now - date).to_i / (24 * 60 * 60)
           days_formatted = '%3.3s' % days.to_s
 
-          display = "[fg=yellow]#{number_formatted}[fg=cyan] #{days_formatted}d ago #{interactions}#{repo_name}[fg=white]#{title}"
+          display = "[fg=yellow]#{number_formatted}[fg=cyan] #{days_formatted}d ago #{interactions}#{repo_name}#{username}[fg=white]#{title}"
 
           return display
         end

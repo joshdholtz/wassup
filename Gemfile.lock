@@ -1,23 +1,24 @@
 PATH
   remote: .
   specs:
-    wassup (0.2.1)
+    wassup (0.3.2)
       curses
       rest-client
 
 GEM
   remote: https://rubygems.org/
   specs:
-    curses (1.4.2)
+    colorize (0.8.1)
+    curses (1.4.4)
     diff-lcs (1.4.4)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
     http-accept (1.7.0)
-    http-cookie (1.0.4)
+    http-cookie (1.0.5)
       domain_name (~> 0.5)
     mime-types (3.4.1)
       mime-types-data (~> 3.2015)
-    mime-types-data (3.2021.1115)
+    mime-types-data (3.2023.0218.1)
     netrc (0.11.0)
     rake (12.3.3)
     rest-client (2.1.0)
@@ -40,15 +41,17 @@ GEM
     rspec-support (3.10.3)
     unf (0.1.4)
       unf_ext
-    unf_ext (0.0.8)
+    unf_ext (0.0.8.2)
 
 PLATFORMS
   arm64-darwin-21
 
 DEPENDENCIES
+  colorize
   rake (~> 12.0)
+  rest-client
   rspec (~> 3.0)
   wassup!
 
 BUNDLED WITH
-   2.2.3
+   2.2.33

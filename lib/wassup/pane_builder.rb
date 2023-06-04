@@ -1,5 +1,11 @@
 
 module Wassup
+  module AlertLevel
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+  end
+
   class PaneBuilder
     attr_accessor :height
     attr_accessor :width
@@ -10,6 +16,8 @@ module Wassup
 
     attr_accessor :title
     attr_accessor :description
+
+    attr_accessor :alert_level
 
     attr_accessor :show_refresh
 

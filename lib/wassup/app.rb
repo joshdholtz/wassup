@@ -70,6 +70,7 @@ module Wassup
         pane_builder.left, 
         title: pane_builder.title,
         description: pane_builder.description,
+        alert_level: pane_builder.alert_level,
         highlight: pane_builder.highlight, 
         focus_number: number,
         interval: pane_builder.interval,

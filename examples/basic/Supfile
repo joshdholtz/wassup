@@ -10,7 +10,7 @@ add_pane do |pane|
   pane.interval = 60 * 5
   pane.show_refresh = true
 
-  pane.type = Panes::GitHub::PullRequests.new(org: 'fastlane', repo: 'fastlane')
+  pane.type = Panes::GitHub::PullRequests.new(org: 'fastlane', repo: 'fastlane', show_username: true)
 end
 
 add_pane do |pane|
@@ -25,7 +25,7 @@ add_pane do |pane|
   pane.interval = 60 * 5
   pane.show_refresh = true
 
-  pane.type = Panes::GitHub::Search.new(org: 'fastlane-community', query: 'is:pr is:open')
+  pane.type = Panes::GitHub::Search.new(org: 'fastlane-community', query: 'is:pr is:open', show_username: true)
 end
 
 add_pane do |pane|
@@ -36,6 +36,8 @@ add_pane do |pane|
 
   pane.highlight = true
   pane.title = "High Interaction Issues - fastlane/fastlane"
+
+  pane.alert_level = AlertLevel::HIGH
 
   pane.interval = 60 * 5
   pane.show_refresh = true

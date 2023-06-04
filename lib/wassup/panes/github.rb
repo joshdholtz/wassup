@@ -4,17 +4,21 @@ module Wassup
       class PullRequests
         attr_accessor :org
         attr_accessor :repo
+        attr_accessor :show_username
+        attr_accessor :show_interactions
 
-        def initialize(org:, repo:)
+        def initialize(org:, repo:, show_username: false, show_interactions: false)
           @org = org
           @repo = repo
+          @show_username = show_username
+          @show_interactions = show_interactions
         end
 
         def configure(pane)
           pane.content do |content|
             prs = Helpers::GitHub.pull_requests(org: org, repo: repo)
             prs.each do |pr|
-              display = Helpers::GitHub::Formatter.pr(pr)
+              display = Helpers::GitHub::Formatter.pr(pr, show_username: show_username, show_interactions: show_interactions)
               content.add_row(display, pr)
             end
           end
@@ -51,12 +55,16 @@ module Wassup
         attr_accessor :org
         attr_accessor :repo
         attr_accessor :query
+        attr_accessor :show_repo
+        attr_accessor :show_username
         attr_accessor :show_interactions
 
-        def initialize(org:, repo: nil, query:, show_interactions: false)
+        def initialize(org:, repo: nil, query:, show_repo: true, show_username: false, show_interactions: false)
           @org = org
           @repo = repo
           @query = query
+          @show_repo = show_repo
+          @show_username = show_username
           @show_interactions = show_interactions
         end
 
@@ -67,9 +75,9 @@ module Wassup
             issues_or_prs = Helpers::GitHub.issues(org: org, repo: repo, q: query)
             issues_or_prs.each do |issue_or_pr|
               display = if issue_or_pr.has_key?('pull_request')
-                          Helpers::GitHub::Formatter.pr(issue_or_pr, show_repo: true, show_interactions: show_interactions)
+                          Helpers::GitHub::Formatter.pr(issue_or_pr, show_repo: show_repo, show_username: show_username, show_interactions: show_interactions)
                         else
-                          Helpers::GitHub::Formatter.issue(issue_or_pr, show_repo: true, show_interactions: show_interactions)
+                          Helpers::GitHub::Formatter.issue(issue_or_pr, show_repo: show_repo, show_username: show_username, show_interactions: show_interactions)
                         end
               content.add_row(display, issue_or_pr)
             end
