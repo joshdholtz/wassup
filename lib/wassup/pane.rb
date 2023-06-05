@@ -1,5 +1,6 @@
 require 'curses'
 
+require 'socket'
 require 'time'
 
 module Wassup
@@ -42,6 +43,8 @@ module Wassup
 
     attr_accessor :win_height, :win_width, :win_top, :win_left
 
+    attr_accessor :port
+
 		class Content
 			class Row
 				attr_accessor :display
@@ -68,7 +71,9 @@ module Wassup
 			end
 		end
 
-    def initialize(height, width, top, left, title: nil, description: nil, alert_level: nil, highlight: true, focus_number: nil, interval:, show_refresh:, content_block:, selection_blocks:, selection_blocks_description:, debug: false)
+    def initialize(height, width, top, left, title: nil, description: nil, alert_level: nil, highlight: true, focus_number: nil, interval:, show_refresh:, content_block:, selection_blocks:, selection_blocks_description:, port: nil, debug: false)
+
+      self.port = port
 
       if !debug
         self.win_height = Curses.lines * height	
@@ -236,6 +241,8 @@ module Wassup
 
 					self.update_box
 					self.update_title
+
+          self.send_to_socket
         else
           # This shouldn't happen
           # TODO: also fix this
@@ -325,6 +332,31 @@ module Wassup
         self.last_refresh_char_at = Time.now
       end
     end
+
+    def send_to_socket
+      return if self.port.nil?
+      return if self.port.to_i == 0
+
+      data = {
+        title: self.title,
+        description: self.description,
+        alert_level: self.alert_level,
+        alert_count: self.alert_count
+      }
+
+      sock = TCPSocket.new('127.0.0.1', self.port)
+      sock.write(data.to_json)
+      sock.close
+    end
+
+    def alert_count
+      alert_count = 0
+      if self.contents
+        alert_count = self.contents.map { |c| c.data.size }.inject(0, :+)
+      end
+
+      return alert_count
+    end
       
     def update_title
       return unless self.should_box
@@ -343,10 +375,7 @@ module Wassup
 
       self.win.setpos(0, 3 + full_title.size)
       alert = ""
-      alert_count = 0
-      if self.contents
-        alert_count = self.contents.map { |c| c.data.size }.inject(0, :+)
-      end
+      alert_count = self.alert_count
       case self.alert_level
       when AlertLevel::HIGH
 			  self.win.attrset(Curses.color_pair(Wassup::Color::Pair::RED))

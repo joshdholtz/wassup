@@ -2,7 +2,7 @@ require 'curses'
 
 module Wassup
   class App
-    def self.start(path:)
+    def self.start(path:, port:)
       Curses.init_screen
       Curses.start_color
       Curses.curs_set(0) # Invisible cursor
@@ -17,7 +17,7 @@ module Wassup
       #Curses.init_pair(Curses::COLOR_BLUE,Curses::COLOR_BLUE,Curses::COLOR_BLACK) 
       #Curses.init_pair(Curses::COLOR_RED,Curses::COLOR_RED,Curses::COLOR_BLACK)
 
-      app = App.new(path: path)
+      app = App.new(path: path, port: port)
     end
 
     def self.debug(path:)
@@ -78,6 +78,7 @@ module Wassup
         content_block: pane_builder.content_block,
         selection_blocks: pane_builder.selection_blocks,
         selection_blocks_description: pane_builder.selection_blocks_description,
+        port: self.port,
         debug: debug
       )
       pane.focus_handler = @focus_handler
@@ -85,9 +86,11 @@ module Wassup
     end
 
     attr_accessor :panes
+    attr_accessor :port
     attr_accessor :debug
 
-    def initialize(path:, debug: false)
+    def initialize(path:, port: nil, debug: false)
+      @port = port
       @hidden_pane = nil
       @help_pane = nil
       @focused_pane = nil

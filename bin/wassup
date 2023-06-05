@@ -4,6 +4,7 @@ require 'wassup'
 
 debug = ARGV.delete("--debug")
 path = ARGV[0] || 'Supfile'
+port = ARGV[1] || 0
 
 unless File.exists?(path)
   raise "Missing file: #{path}"
@@ -12,5 +13,5 @@ end
 if debug
   Wassup::App.debug(path: path)
 else
-  Wassup::App.start(path: path)
+  Wassup::App.start(path: path, port: port.to_i)
 end
