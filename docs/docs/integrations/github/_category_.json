@@ -1,0 +1,8 @@
+{
+  "label": "GitHub",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Complete GitHub integration with setup, helpers, formatters, and examples."
+  }
+}
