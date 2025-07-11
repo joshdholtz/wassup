@@ -1,0 +1,53 @@
+add_pane do |pane|
+  pane.height = 0.6
+  pane.width = 0.5
+  pane.top = 0
+  pane.left = 0
+
+  pane.highlight = false
+  pane.title = "World Clock"
+  pane.interval = 60  # Update every minute
+
+  pane.type = Wassup::Panes::WorldClock.new(
+    locations: {
+      "New York" => "America/New_York",
+      "London" => "Europe/London", 
+      "Tokyo" => "Asia/Tokyo",
+      "Sydney" => "Australia/Sydney",
+      "Dubai" => "Asia/Dubai",
+      "UTC" => "UTC"
+    },
+    sort_order: "alphabetical",
+    time_format: "%H:%M:%S",
+    date_format: "%Y-%m-%d",
+    working_hours: {start: 9, end: 17},
+    color_coding: true
+  )
+end
+
+add_pane do |pane|
+  pane.height = 0.6
+  pane.width = 0.5
+  pane.top = 0
+  pane.left = 0.5
+
+  pane.highlight = false
+  pane.title = "Business Hours"
+  pane.interval = 60  # Update every minute
+
+  pane.type = Wassup::Panes::WorldClock.new(
+    locations: {
+      "San Francisco" => "America/Los_Angeles",
+      "Chicago" => "America/Chicago",
+      "New York" => "America/New_York",
+      "London" => "Europe/London",
+      "Paris" => "Europe/Paris",
+      "Singapore" => "+08:00"
+    },
+    sort_order: "chronological",
+    time_format: "%H:%M",
+    date_format: "%a %b %d",
+    working_hours: {start: 8, end: 18},
+    color_coding: true
+  )
+end

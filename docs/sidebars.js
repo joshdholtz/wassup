@@ -40,6 +40,18 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: 'Prebuilt Panes',
+      items: [
+        'panes/overview',
+        'panes/github',
+        'panes/circleci',
+        'panes/netlify',
+        'panes/shortcut',
+        'panes/world-clock',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Integrations',
       items: [
         'integrations/github',
