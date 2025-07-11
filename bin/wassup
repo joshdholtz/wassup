@@ -6,7 +6,7 @@ debug = ARGV.delete("--debug")
 path = ARGV[0] || 'Supfile'
 port = ARGV[1] || 0
 
-unless File.exists?(path)
+unless File.exist?(path)
   raise "Missing file: #{path}"
 end
 

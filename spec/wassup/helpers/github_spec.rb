@@ -22,17 +22,14 @@ RSpec.describe Wassup::Helpers::GitHub do
     end
 
     before do
-      allow(RestClient::Request).to receive(:execute).and_return(issues_response.to_json)
+      allow(Wassup::Helpers::GitHub::RateLimiter).to receive(:execute_request).and_return(issues_response.to_json)
       allow(JSON).to receive(:parse).and_return(issues_response)
     end
 
     it "searches for issues in an organization" do
-      expect(RestClient::Request).to receive(:execute).with(
+      expect(Wassup::Helpers::GitHub::RateLimiter).to receive(:execute_request).with(
         method: :get,
-        url: "https://api.github.com/search/issues?q=org:testorg",
-        user: "testuser",
-        password: "token123",
-        headers: { "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" }
+        url: "https://api.github.com/search/issues?q=org:testorg"
       )
 
       issues = Wassup::Helpers::GitHub.issues(org: "testorg")
@@ -40,24 +37,18 @@ RSpec.describe Wassup::Helpers::GitHub do
     end
 
     it "searches for issues in a specific repository" do
-      expect(RestClient::Request).to receive(:execute).with(
+      expect(Wassup::Helpers::GitHub::RateLimiter).to receive(:execute_request).with(
         method: :get,
-        url: "https://api.github.com/search/issues?q=repo:testorg/testrepo",
-        user: "testuser",
-        password: "token123",
-        headers: { "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" }
+        url: "https://api.github.com/search/issues?q=repo:testorg/testrepo"
       )
 
       Wassup::Helpers::GitHub.issues(org: "testorg", repo: "testrepo")
     end
 
     it "includes additional query parameters" do
-      expect(RestClient::Request).to receive(:execute).with(
+      expect(Wassup::Helpers::GitHub::RateLimiter).to receive(:execute_request).with(
         method: :get,
-        url: "https://api.github.com/search/issues?q=org:testorg is:open",
-        user: "testuser",
-        password: "token123",
-        headers: { "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" }
+        url: "https://api.github.com/search/issues?q=org:testorg is:open"
       )
 
       Wassup::Helpers::GitHub.issues(org: "testorg", q: "is:open")
@@ -73,16 +64,14 @@ RSpec.describe Wassup::Helpers::GitHub do
     end
 
     before do
-      allow(RestClient::Request).to receive(:execute).and_return(repos_response.to_json)
+      allow(Wassup::Helpers::GitHub::RateLimiter).to receive(:execute_request).and_return(repos_response.to_json)
       allow(JSON).to receive(:parse).and_return(repos_response)
     end
 
     it "fetches repositories for an organization" do
-      expect(RestClient::Request).to receive(:execute).with(
+      expect(Wassup::Helpers::GitHub::RateLimiter).to receive(:execute_request).with(
         method: :get,
-        url: "https://api.github.com/orgs/testorg/repos",
-        user: "testuser",
-        password: "token123"
+        url: "https://api.github.com/orgs/testorg/repos"
       )
 
       repos = Wassup::Helpers::GitHub.repos(org: "testorg")
@@ -107,19 +96,17 @@ RSpec.describe Wassup::Helpers::GitHub do
     end
 
     before do
-      allow(RestClient::Request).to receive(:execute).and_return(repos_response.to_json, pr_response.to_json, pr_response.to_json)
+      allow(Wassup::Helpers::GitHub::RateLimiter).to receive(:execute_request).and_return(repos_response.to_json, pr_response.to_json, pr_response.to_json)
       allow(JSON).to receive(:parse).and_return(repos_response, pr_response, pr_response)
     end
 
     it "fetches pull requests for a specific repository" do
-      allow(RestClient::Request).to receive(:execute).and_return(pr_response.to_json)
+      allow(Wassup::Helpers::GitHub::RateLimiter).to receive(:execute_request).and_return(pr_response.to_json)
       allow(JSON).to receive(:parse).and_return(pr_response)
       
-      expect(RestClient::Request).to receive(:execute).with(
+      expect(Wassup::Helpers::GitHub::RateLimiter).to receive(:execute_request).with(
         method: :get,
-        url: "https://api.github.com/repos/testorg/testrepo/pulls?per_page=100",
-        user: "testuser",
-        password: "token123"
+        url: "https://api.github.com/repos/testorg/testrepo/pulls?per_page=100"
       )
 
       prs = Wassup::Helpers::GitHub.pull_requests(org: "testorg", repo: "testrepo")
@@ -144,16 +131,14 @@ RSpec.describe Wassup::Helpers::GitHub do
     end
 
     before do
-      allow(RestClient::Request).to receive(:execute).and_return(releases_response.to_json)
+      allow(Wassup::Helpers::GitHub::RateLimiter).to receive(:execute_request).and_return(releases_response.to_json)
       allow(JSON).to receive(:parse).and_return(releases_response)
     end
 
     it "fetches releases for a repository" do
-      expect(RestClient::Request).to receive(:execute).with(
+      expect(Wassup::Helpers::GitHub::RateLimiter).to receive(:execute_request).with(
         method: :get,
-        url: "https://api.github.com/repos/testorg/testrepo/releases",
-        user: "testuser",
-        password: "token123"
+        url: "https://api.github.com/repos/testorg/testrepo/releases"
       )
 
       releases = Wassup::Helpers::GitHub.releases(org: "testorg", repo: "testrepo")
