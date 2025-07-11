@@ -33,8 +33,16 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: 'Usage',
+      items: [
+        'usage/keyboard-controls',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Integrations',
       items: [
+        'integrations/github',
         {
           type: 'category',
           label: 'GitHub',
@@ -42,8 +50,23 @@ const sidebars = {
             'integrations/github/setup',
             'integrations/github/helpers',
             'integrations/github/formatters',
+            'integrations/github/examples',
           ],
         },
+        {
+          type: 'category',
+          label: 'Netlify',
+          items: [
+            'integrations/netlify/setup',
+          ],
+        },
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Helpers',
+      items: [
+        'helpers/api-helpers',
       ],
     },
     {
@@ -58,6 +81,7 @@ const sidebars = {
       label: 'Debug & Troubleshooting',
       items: [
         'debug/troubleshooting',
+        'troubleshooting/common-issues',
       ],
     },
   ],
