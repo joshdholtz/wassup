@@ -3,6 +3,7 @@ module Wassup
     module GitHub
       require 'json'
       require 'rest-client'
+      require_relative 'github_rate_limiter'
 
       # https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests
       def self.issues(org:, repo:nil, q: nil)
@@ -22,12 +23,9 @@ module Wassup
 
         items = []
 
-        resp = RestClient::Request.execute(
+        resp = RateLimiter.execute_request(
           method: :get, 
-          url: "https://api.github.com/search/issues?q=#{q}", 
-          user: ENV["WASSUP_GITHUB_USERNAME"],
-          password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"],
-          headers: { "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" },
+          url: "https://api.github.com/search/issues?q=#{q}"
         )
         partial_items = JSON.parse(resp)["items"]
         items += partial_items
@@ -36,11 +34,9 @@ module Wassup
       end
 
       def self.repos(org:)
-        resp = RestClient::Request.execute(
+        resp = RateLimiter.execute_request(
           method: :get, 
-          url: "https://api.github.com/orgs/#{org}/repos", 
-          user: ENV["WASSUP_GITHUB_USERNAME"],
-          password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"]
+          url: "https://api.github.com/orgs/#{org}/repos"
         )
         return JSON.parse(resp)
       end
@@ -57,11 +53,9 @@ module Wassup
         end
         
         return repos.map do |repo|
-          resp = RestClient::Request.execute(
+          resp = RateLimiter.execute_request(
             method: :get, 
-            url: "https://api.github.com/repos/#{repo.org}/#{repo.repo}/pulls?per_page=100", 
-            user: ENV["WASSUP_GITHUB_USERNAME"],
-            password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"]
+            url: "https://api.github.com/repos/#{repo.org}/#{repo.repo}/pulls?per_page=100"
           )
 
           JSON.parse(resp)
@@ -69,13 +63,44 @@ module Wassup
       end
 
       def self.releases(org:, repo:)
-        resp = RestClient::Request.execute(
+        resp = RateLimiter.execute_request(
           method: :get, 
-          url: "https://api.github.com/repos/#{org}/#{repo}/releases", 
-          user: ENV["WASSUP_GITHUB_USERNAME"],
-          password: ENV["WASSUP_GITHUB_ACCESS_TOKEN"]
+          url: "https://api.github.com/repos/#{org}/#{repo}/releases"
         )
 
+        return JSON.parse(resp)
+      end
+
+      # Generic GitHub API method for any endpoint
+      def self.api(path:, method: :get, params: {}, body: nil)
+        # Handle full URLs or relative paths
+        if path.start_with?('http')
+          url = path
+        else
+          # Ensure path starts with /
+          path = "/#{path}" unless path.start_with?('/')
+          url = "https://api.github.com#{path}"
+        end
+        
+        # Add query parameters if provided
+        if params.any?
+          query_string = params.map { |k, v| "#{k}=#{v}" }.join('&')
+          url += "?#{query_string}"
+        end
+        
+        # Prepare request options
+        options = {}
+        if body
+          options[:payload] = body.is_a?(String) ? body : body.to_json
+        end
+        
+        # Make the request using the rate limiter
+        resp = RateLimiter.execute_request(
+          method: method,
+          url: url,
+          **options
+        )
+        
         return JSON.parse(resp)
       end
     end
