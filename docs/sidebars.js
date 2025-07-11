@@ -26,7 +26,7 @@ const sidebars = {
       type: 'category',
       label: 'Configuration',
       items: [
-        'Supfile-basics/understanding-the-supfile',
+        'configuration/understanding-supfile',
         'configuration/pane-properties',
         'advanced/complex-layouts',
       ],
@@ -35,7 +35,15 @@ const sidebars = {
       type: 'category',
       label: 'Integrations',
       items: [
-        'integrations/github',
+        {
+          type: 'category',
+          label: 'GitHub',
+          items: [
+            'integrations/github/setup',
+            'integrations/github/helpers',
+            'integrations/github/formatters',
+          ],
+        },
       ],
     },
     {
@@ -43,14 +51,6 @@ const sidebars = {
       label: 'Examples',
       items: [
         'examples/dashboard-layouts',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Helpers & Utilities',
-      items: [
-        'helpers/api-helpers',
-        'helpers/formatters',
       ],
     },
     {
