@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wassup (0.4.1)
+    wassup (0.5.0)
       curses
       rest-client
 
