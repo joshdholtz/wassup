@@ -172,9 +172,15 @@ module Wassup
               pane.refresh()
             end
             @redraw_panes = false
+            # Use doupdate for more efficient screen updates when multiple panes are updated
+            Curses.doupdate if @panes.size > 1
           else
             @help_pane.refresh()
           end
+          
+          # Add throttling to prevent busy-waiting and reduce battery drain
+          # 10ms delay limits to ~100 FPS while maintaining responsiveness
+          sleep(0.01)
         end
       ensure
         Curses.close_screen
@@ -247,8 +253,16 @@ module Wassup
           end 
         end
 
+        # Ensure main panes are properly drawn before opening help
+        @panes.each do |id, pane|
+          pane.redraw()
+          pane.refresh()
+        end
+        
         # Maybe find a way to add some a second border or an clear border to add more space to show its floating
-        @help_pane = Pane.new(0.5, 0.5, 0.25, 0.25, title: "Help", highlight: false, focus_number: nil, interval: 100, show_refresh: false, content_block: content_block, selection_blocks: nil, selection_blocks_description: nil)
+        @help_pane = Pane.new(0.5, 0.5, 0.25, 0.25, title: "Help", highlight: false, focus_number: nil, interval: 1000, show_refresh: false, content_block: content_block, selection_blocks: nil, selection_blocks_description: nil)
+        # Force initial refresh to show content immediately
+        @help_pane.refresh(force: true)
       else
         @help_pane.close
         @help_pane = nil 

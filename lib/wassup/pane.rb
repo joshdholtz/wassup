@@ -45,6 +45,9 @@ module Wassup
 
     attr_accessor :port
 
+    # Performance optimization attributes
+    attr_accessor :last_content_hash, :last_highlighted_line, :last_focused_state, :parsed_lines_cache
+
 		class Content
 			class Row
 				attr_accessor :display
@@ -97,6 +100,12 @@ module Wassup
       self.show_refresh = show_refresh
      
       self.selected_view_index = 0
+      
+      # Initialize performance optimization attributes
+      self.last_content_hash = nil
+      self.last_highlighted_line = nil
+      self.last_focused_state = nil
+      self.parsed_lines_cache = {}
 
       if !debug
         self.win.refresh
@@ -324,7 +333,7 @@ module Wassup
 
       self.last_refresh_char_at ||= Time.now
 
-      if Time.now - self.last_refresh_char_at >= 0.15
+      if Time.now - self.last_refresh_char_at >= 0.25
         self.win.setpos(0, 1)
         self.win.addstr(self.refresh_char)
         self.win.refresh
@@ -439,8 +448,59 @@ module Wassup
       self.subwin.refresh
     end
 
+    # Cache color parsing results to avoid redundant regex operations
+    def parse_line_colors(line)
+      return self.parsed_lines_cache[line] if self.parsed_lines_cache.key?(line)
+      
+      splits = line.split(/\[.*?\]/) # returns ["hey something", "other thing", "okay"]
+      scans = line.scan(/\[.*?\]/) #returns ["red", "white"]
+      scans = scans.map do |str|
+        if str.start_with?('[fg=')
+          str = str.gsub('[fg=', '').gsub(']','')
+          Wassup::Color.new(str)
+        else
+          str
+        end
+      end
+      
+      all_parts = splits.zip(scans).flatten.compact
+      
+      # Cache the result
+      self.parsed_lines_cache[line] = all_parts
+      
+      # Limit cache size to prevent memory bloat
+      if self.parsed_lines_cache.size > 1000
+        # Remove oldest entries (keep most recent 500)
+        self.parsed_lines_cache = self.parsed_lines_cache.to_a.last(500).to_h
+      end
+      
+      all_parts
+    end
+
     def virtual_reload
       return if self.data_lines.nil? || self.data_lines.empty?
+      
+      # Skip optimization for first-time loads or if optimization attributes aren't initialized
+      if self.last_content_hash.nil? || self.last_highlighted_line.nil? || self.last_focused_state.nil?
+        # Initialize on first run and force redraw
+        self.last_content_hash = self.data_lines.hash
+        self.last_highlighted_line = self.highlighted_line
+        self.last_focused_state = self.focused
+      else
+        # Check if content has changed to avoid unnecessary redraws
+        current_content_hash = self.data_lines.hash
+        highlight_changed = self.last_highlighted_line != self.highlighted_line
+        focus_changed = self.last_focused_state != self.focused
+        
+        if current_content_hash == self.last_content_hash && !highlight_changed && !focus_changed
+          return # No changes, skip redraw
+        end
+        
+        # Track what changed for next time
+        self.last_content_hash = current_content_hash
+        self.last_highlighted_line = self.highlighted_line
+        self.last_focused_state = self.focused
+      end
 
       # TODO: This errored out but might be because thread stuff???
       self.data_lines[self.top..(self.top+self.subwin.maxy-1)].each_with_index do |line, idx|
@@ -452,18 +512,8 @@ module Wassup
        
 				self.subwin.attrset(Curses.color_pair(Wassup::Color::Pair::NORMAL))
 
-				splits = line.split(/\[.*?\]/) # returns ["hey something", "other thing", "okay"]
-				scans = line.scan(/\[.*?\]/) #returns ["red", "white"]
-				scans = scans.map do |str|
-					if str.start_with?('[fg=')
-						str = str.gsub('[fg=', '').gsub(']','')
-						Wassup::Color.new(str)
-					else
-						str
-					end
-				end
-
-				all_parts = splits.zip(scans).flatten.compact
+				# Use cached color parsing instead of expensive regex operations
+				all_parts = parse_line_colors(line)
 		
 				char_count = 0
 
