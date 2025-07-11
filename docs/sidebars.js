@@ -17,7 +17,7 @@ const sidebars = {
     'intro',
     {
       type: 'category',
-      label: 'Getting Started',
+      label: 'Basic Configuration',
       items: [
         'basics/simple-configuration',
       ],

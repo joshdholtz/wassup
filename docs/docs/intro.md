@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Getting Started
+# Introduction
 
 **Wassup** is a scriptable terminal dashboard that creates real-time, interactive displays of data from various sources. This guide will help you get started with creating your first dashboard.
 
@@ -134,7 +134,8 @@ Once your dashboard is running, use these keyboard shortcuts:
 
 Now that you have a basic dashboard running, explore these topics:
 
-1. **[Understanding the Supfile](./Supfile-basics/understanding-the-supfile.md)** - Learn about pane configuration
-2. **[Built-in Integrations](./integrations/github.md)** - Use GitHub, CircleCI, Netlify, and Shortcut
-3. **[Advanced Examples](./examples/dashboard-layouts.md)** - Create complex multi-pane dashboards
-4. **[Configuration Reference](./configuration/pane-properties.md)** - Complete configuration options
+1. **[Simple Configuration](./basics/simple-configuration.md)** - Start with basic examples
+2. **[Understanding the Supfile](./configuration/understanding-supfile.md)** - Learn about pane configuration
+3. **[GitHub Integration](./integrations/github/setup.md)** - Connect to GitHub, CircleCI, Netlify, and Shortcut
+4. **[Advanced Examples](./examples/dashboard-layouts.md)** - Create complex multi-pane dashboards
+5. **[Configuration Reference](./configuration/pane-properties.md)** - Complete configuration options
