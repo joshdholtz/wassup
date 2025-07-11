@@ -206,4 +206,4 @@ If you get "repository not found" errors:
 - Verify your CircleCI token has access to the organization
 - Check if the repository is private and requires appropriate permissions
 
-For more troubleshooting help, check the [CircleCI Integration Documentation](../integrations/circleci/) or the [Common Issues Guide](../troubleshooting/common-issues.md).
+For more troubleshooting help, check the [Common Issues Guide](../troubleshooting/common-issues.md).
