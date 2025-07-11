@@ -2,6 +2,7 @@
   <img height="200" alt="Wassup logo" src="https://user-images.githubusercontent.com/401294/145626927-7eb0fda5-c62a-47c8-9422-074b178fd8ef.png" />
 </h3>
 
+[![CI](https://github.com/joshdholtz/wassup/actions/workflows/ci.yml/badge.svg)](https://github.com/joshdholtz/wassup/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/fastlane/fastlane/blob/master/LICENSE)
 [![Gem](https://img.shields.io/gem/v/wassup.svg?style=flat)](https://rubygems.org/gems/wassup)
 
